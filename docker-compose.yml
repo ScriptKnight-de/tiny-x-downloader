@@ -1,7 +1,8 @@
 services:
   x-downloader:
     build: .
-    image: x-downloader:latest
+    # Pre-built image from the Forgejo registry; `docker compose up --build` builds locally instead
+    image: ${X_DOWNLOADER_IMAGE:-forgejo.scriptknight.de/scriptknight/x-downloader:latest}
     container_name: x-downloader
     restart: unless-stopped
     # Run as your host user so downloaded files are owned by you

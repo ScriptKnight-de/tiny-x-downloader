@@ -1,18 +1,20 @@
-FROM python:3.13-slim
+FROM python:3.13-alpine
+
+LABEL org.opencontainers.image.title="x-downloader" \
+      org.opencontainers.image.description="Daily sync of media from liked and bookmarked X posts" \
+      org.opencontainers.image.source="https://forgejo.scriptknight.de/scriptknight/x-downloader"
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     HOME=/data \
     XDG_CACHE_HOME=/data/cache
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends tzdata ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache tzdata ca-certificates
 
 WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY src ./src
-RUN pip install .
+RUN pip install . && rm -rf /app/src /root/.cache
 
 # Defaults for container paths; override via compose/.env
 ENV X_COOKIES=/config/cookies.txt \

@@ -20,7 +20,9 @@ content freely and it will never be fetched again. Don't delete the archive.
 cp .env.example .env                  # set X_USERNAME, PUID/PGID (id -u / id -g), TZ, X_SYNC_TIME
 mkdir -p config data downloads        # create as your user, otherwise Docker creates them as root
 cp /path/to/cookies.txt config/cookies.txt && chmod 600 config/cookies.txt
-docker compose up -d --build
+docker compose up -d --build         # build locally ...
+# ... or use the image published by the Forgejo workflow (see "CI image" below):
+# docker login forgejo.scriptknight.de && docker compose pull && docker compose up -d
 docker compose logs -f
 ```
 
@@ -35,6 +37,17 @@ next run picks it up). Set `X_RUN_ON_START=true` to also sync right after start.
 | `./downloads` | `/downloads` | media (`likes/`, `bookmarks/`); move files out freely |
 
 One-off commands: `docker compose run --rm x-downloader sync --dry-run`.
+
+## CI image
+
+`.forgejo/workflows/build.yml` runs the tests, then builds the Alpine-based image
+(`linux/amd64` + `linux/arm64`) and pushes it to
+`forgejo.scriptknight.de/scriptknight/x-downloader` on every push to `main`
+(`latest`, `sha-<short>`) and on `v*` tags (`1.2.3`, `1.2`).
+
+Setup once: add repository secrets `REGISTRY_USER` (your Forgejo user) and `REGISTRY_TOKEN`
+(access token with the `write:package` scope), and make sure a Forgejo runner with the label
+`docker` and Docker access is registered.
 
 ## Without Docker
 
