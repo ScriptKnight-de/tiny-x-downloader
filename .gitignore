@@ -9,3 +9,6 @@ build/
 .env
 downloads/
 cookies.txt
+
+data/
+config/

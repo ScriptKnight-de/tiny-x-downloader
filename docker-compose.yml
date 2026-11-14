@@ -1,0 +1,20 @@
+services:
+  x-downloader:
+    build: .
+    image: x-downloader:latest
+    container_name: x-downloader
+    restart: unless-stopped
+    # Run as your host user so downloaded files are owned by you
+    user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      TZ: ${TZ:-Europe/Berlin}
+      X_USERNAME: ${X_USERNAME:?set X_USERNAME in .env}
+      X_SYNC_TIME: ${X_SYNC_TIME:-04:00}
+      X_RUN_ON_START: ${X_RUN_ON_START:-false}
+    volumes:
+      # cookies.txt exported from your logged-in browser (read-only)
+      - ${X_COOKIES_FILE:-./config/cookies.txt}:/config/cookies.txt:ro
+      # archive DB = memory of already downloaded posts; keep it persistent!
+      - ${X_DATA_DIR:-./data}:/data
+      # downloaded media; you may move files out of here freely
+      - ${X_DOWNLOADS_DIR:-./downloads}:/downloads

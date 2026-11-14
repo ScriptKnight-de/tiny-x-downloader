@@ -14,6 +14,30 @@ content freely and it will never be fetched again. Don't delete the archive.
 - Later runs: newest-first scan that stops after 30 consecutive already-known files.
   Use `--full` to force a complete rescan.
 
+## Docker (recommended)
+
+```bash
+cp .env.example .env                  # set X_USERNAME, PUID/PGID (id -u / id -g), TZ, X_SYNC_TIME
+mkdir -p config data downloads        # create as your user, otherwise Docker creates them as root
+cp /path/to/cookies.txt config/cookies.txt && chmod 600 config/cookies.txt
+docker compose up -d --build
+docker compose logs -f
+```
+
+The container runs `x-downloader daemon`: it syncs once per day at `X_SYNC_TIME` (local time
+per `TZ`) and keeps running if a sync fails (e.g. expired cookies, replace the file and the
+next run picks it up). Set `X_RUN_ON_START=true` to also sync right after start.
+
+| Host path (default) | Container | Purpose |
+|---|---|---|
+| `./config/cookies.txt` | `/config/cookies.txt` (ro) | your x.com session cookies |
+| `./data` | `/data` | archive DB + state: **keep this**, it is the memory of what was downloaded |
+| `./downloads` | `/downloads` | media (`likes/`, `bookmarks/`); move files out freely |
+
+One-off commands: `docker compose run --rm x-downloader sync --dry-run`.
+
+## Without Docker
+
 ## Setup
 
 ```bash
