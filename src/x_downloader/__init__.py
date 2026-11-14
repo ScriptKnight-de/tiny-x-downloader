@@ -1,3 +1,3 @@
-"""x-downloader: download videos and GIFs from X (Twitter) posts."""
+"""x-downloader: sync media from your liked and bookmarked X posts."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

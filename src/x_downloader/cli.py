@@ -3,47 +3,47 @@
 from __future__ import annotations
 
 import argparse
-import os
 import sys
-from pathlib import Path
 
 from . import __version__
-from .core import download
+from .config import Settings, load_env_files
+from .sync import SOURCES, sync
+from .timer import install_timer
 
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="x-downloader",
-        description="Download videos and GIFs from X (Twitter) posts.",
+        description="Download images and videos from your liked and bookmarked X posts.",
     )
-    p.add_argument("urls", nargs="+", help="post URLs (x.com or twitter.com)")
-    p.add_argument(
-        "-o", "--output-dir",
-        default=os.environ.get("X_DOWNLOADER_OUTPUT_DIR", "downloads"),
-        help="target directory (default: ./downloads)",
-    )
-    p.add_argument(
-        "-c", "--cookies",
-        default=os.environ.get("X_DOWNLOADER_COOKIES") or None,
-        help="Netscape cookies file for protected/age-restricted posts",
-    )
-    p.add_argument("-q", "--quiet", action="store_true", help="suppress progress output")
     p.add_argument("-V", "--version", action="version", version=f"%(prog)s {__version__}")
+    sub = p.add_subparsers(dest="command", required=True)
+
+    s = sub.add_parser("sync", help="download new media from likes and bookmarks")
+    s.add_argument("--source", choices=SOURCES, action="append",
+                   help="limit to one source (repeatable; default: both)")
+    s.add_argument("--full", action="store_true",
+                   help="scan the whole timeline instead of stopping at known posts")
+    s.add_argument("--dry-run", action="store_true", help="list what would be downloaded")
+
+    t = sub.add_parser("install-timer", help="install a daily systemd user timer")
+    t.add_argument("--time", default="04:00", help="HH:MM local time (default 04:00)")
+    t.add_argument("--no-enable", action="store_true", help="only write the unit files")
     return p
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    cookies = Path(args.cookies) if args.cookies else None
-    failures = 0
-    for url in args.urls:
-        try:
-            path = download(url, Path(args.output_dir), cookies, args.quiet)
-            print(f"saved: {path}")
-        except (ValueError, RuntimeError) as exc:
-            failures += 1
-            print(f"error: {exc}", file=sys.stderr)
-    return 1 if failures else 0
+    try:
+        if args.command == "install-timer":
+            install_timer(args.time, enable=not args.no_enable)
+            return 0
+        load_env_files()
+        return sync(Settings.from_env(), tuple(args.source or SOURCES),
+                    full=args.full, dry_run=args.dry_run)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":
