@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "x-downloader"
+version = "0.1.0"
+description = "Download videos and GIFs from X (Twitter) posts via the command line"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["yt-dlp>=2025.1.1"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+x-downloader = "x_downloader.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/x_downloader"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
