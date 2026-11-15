@@ -36,6 +36,8 @@ def build_parser() -> argparse.ArgumentParser:
                    default=os.environ.get("X_RUN_ON_START", "").lower() in ("1", "true", "yes"),
                    help="also sync immediately at startup (env X_RUN_ON_START)")
 
+    sub.add_parser("gui", help="open the graphical settings and status window")
+
     t = sub.add_parser("install-timer", help="install a daily systemd user timer")
     t.add_argument("--time", default="04:00", help="HH:MM local time (default 04:00)")
     t.add_argument("--no-enable", action="store_true", help="only write the unit files")
@@ -48,6 +50,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "install-timer":
             install_timer(args.time, enable=not args.no_enable)
             return 0
+        if args.command == "gui":
+            from .gui import run_gui  # lazy: needs tkinter
+
+            return run_gui()
         load_env_files()
         if args.command == "daemon":
             settings = Settings.from_env()

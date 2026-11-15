@@ -6,7 +6,9 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-ENV_FILES = (Path(".env"), Path("~/.config/x-downloader/env").expanduser())
+USER_ENV_FILE = Path("~/.config/x-downloader/env").expanduser()
+ENV_FILES = (Path(".env"), USER_ENV_FILE)
+DEFAULT_ARCHIVE = "~/.local/share/x-downloader/archive.sqlite3"
 
 
 def load_env_files(files=ENV_FILES) -> None:
@@ -38,18 +40,51 @@ class Settings:
         return self.archive.with_name("state.json")
 
     @classmethod
-    def from_env(cls) -> "Settings":
-        username = os.environ.get("X_USERNAME", "").strip().lstrip("@")
-        cookies = os.environ.get("X_COOKIES", "").strip()
-        if not cookies:
-            raise ValueError("X_COOKIES is not set (see .env.example)")
+    def from_values(cls, username: str, cookies: str, output_dir: str, archive: str) -> "Settings":
+        if not cookies.strip():
+            raise ValueError("cookies file is not set")
         return cls(
-            username=username,
-            cookies=_path(cookies),
-            output_dir=_path(os.environ.get("X_DOWNLOADER_OUTPUT_DIR", "downloads")),
-            archive=_path(
-                os.environ.get(
-                    "X_DOWNLOADER_ARCHIVE", "~/.local/share/x-downloader/archive.sqlite3"
-                )
-            ),
+            username=username.strip().lstrip("@"),
+            cookies=_path(cookies.strip()),
+            output_dir=_path(output_dir.strip() or "downloads"),
+            archive=_path(archive.strip() or DEFAULT_ARCHIVE),
         )
+
+    @classmethod
+    def from_env(cls) -> "Settings":
+        if not os.environ.get("X_COOKIES", "").strip():
+            raise ValueError("X_COOKIES is not set (see .env.example)")
+        return cls.from_values(
+            os.environ.get("X_USERNAME", ""),
+            os.environ["X_COOKIES"],
+            os.environ.get("X_DOWNLOADER_OUTPUT_DIR", "downloads"),
+            os.environ.get("X_DOWNLOADER_ARCHIVE", DEFAULT_ARCHIVE),
+        )
+
+
+def read_env_file(path: Path) -> dict[str, str]:
+    values: dict[str, str] = {}
+    if path.is_file():
+        for raw in path.read_text().splitlines():
+            line = raw.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, _, v = line.partition("=")
+                values[k.strip()] = v.strip().strip("'\"")
+    return values
+
+
+def write_env_file(path: Path, updates: dict[str, str]) -> None:
+    """Update KEY=VALUE pairs in place, keeping comments and unrelated keys."""
+    lines = path.read_text().splitlines() if path.is_file() else []
+    remaining = dict(updates)
+    out = []
+    for raw in lines:
+        key = raw.split("=", 1)[0].strip() if "=" in raw and not raw.lstrip().startswith("#") else None
+        if key in remaining:
+            out.append(f"{key}={remaining.pop(key)}")
+        else:
+            out.append(raw)
+    out += [f"{k}={v}" for k, v in remaining.items()]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(out) + "\n")
+    path.chmod(0o600)

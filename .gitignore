@@ -12,3 +12,6 @@ cookies.txt
 
 data/
 config/
+
+build/
+dist/

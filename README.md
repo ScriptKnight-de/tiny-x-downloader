@@ -38,6 +38,23 @@ next run picks it up). Set `X_RUN_ON_START=true` to also sync right after start.
 
 One-off commands: `docker compose run --rm x-downloader sync --dry-run`.
 
+## Desktop app (GUI + AppImage)
+
+`x-downloader gui` opens a small window: enter your username, cookies file, download folder and
+archive location, press **Sync now** (or **Dry run**), and watch the current file, counters and
+the log. Settings are saved to `~/.config/x-downloader/env`. An optional daily sync runs while
+the window is open.
+
+Build a self-contained AppImage (bundles Python + Tk, x86_64 only):
+
+```bash
+./packaging/build-appimage.sh      # -> dist/x-downloader-<version>-x86_64.AppImage
+chmod +x dist/*.AppImage && ./dist/x-downloader-*.AppImage          # opens the GUI
+./dist/x-downloader-*.AppImage sync --dry-run                       # CLI use works too
+```
+
+The script downloads a pinned python-build-standalone and appimagetool and verifies their SHA-256.
+
 ## CI image
 
 `.forgejo/workflows/build.yml` runs the tests, then builds the Alpine-based image

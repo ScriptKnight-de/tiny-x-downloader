@@ -33,8 +33,7 @@ def test_config_archive_outside_output_and_modes(settings):
 
 def test_backfill_state_switches_to_incremental(settings, monkeypatch):
     settings.archive.parent.mkdir(parents=True)
-    modes = []
-    monkeypatch.setattr(s.subprocess, "call", lambda cmd: modes.append(cmd) or 0)
+    monkeypatch.setattr(s, "GALLERY_DL", [__import__("sys").executable, "-c", "pass"])
     s.run_source("likes", settings)
     assert json.loads(settings.state_file.read_text())["likes"]["backfilled"] is True
     seen = {}
@@ -47,7 +46,7 @@ def test_backfill_state_switches_to_incremental(settings, monkeypatch):
 
 def test_failed_run_does_not_mark_backfilled(settings, monkeypatch):
     settings.archive.parent.mkdir(parents=True)
-    monkeypatch.setattr(s.subprocess, "call", lambda cmd: 4)
+    monkeypatch.setattr(s, "GALLERY_DL", [__import__("sys").executable, "-c", "raise SystemExit(4)"])
     s.run_source("likes", settings)
     assert not settings.state_file.exists()
 
