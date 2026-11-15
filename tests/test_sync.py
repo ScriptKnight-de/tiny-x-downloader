@@ -8,18 +8,12 @@ from x_downloader.config import Settings, load_env_files
 
 @pytest.fixture
 def settings(tmp_path):
-    return Settings("me", tmp_path / "c.txt", tmp_path / "out", tmp_path / "state" / "a.sqlite3")
+    return Settings(tmp_path / "c.txt", tmp_path / "out", tmp_path / "state" / "a.sqlite3")
 
 
 def test_source_urls(settings):
-    assert s.source_url("likes", settings) == "https://x.com/me/likes"
+    assert s.source_url("likes", settings) == "https://x.com/i/history/likes"
     assert s.source_url("bookmarks", settings) == "https://x.com/i/bookmarks"
-
-
-def test_likes_requires_username(tmp_path):
-    st = Settings("", tmp_path / "c", tmp_path, tmp_path / "a")
-    with pytest.raises(ValueError):
-        s.source_url("likes", st)
 
 
 def test_config_archive_outside_output_and_modes(settings):

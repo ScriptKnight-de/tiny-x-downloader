@@ -26,9 +26,8 @@ GALLERY_DL = [sys.executable, "-m", "gallery_dl"]
 def source_url(source: str, settings: Settings) -> str:
     if source == "bookmarks":
         return "https://x.com/i/bookmarks"
-    if not settings.username:
-        raise ValueError("X_USERNAME is required to read the likes timeline")
-    return f"https://x.com/{settings.username}/likes"
+    # /i/history/likes takes the account from the "twid" cookie, so no username lookup is needed
+    return "https://x.com/i/history/likes"
 
 
 def build_config(source: str, settings: Settings, incremental: bool) -> dict:

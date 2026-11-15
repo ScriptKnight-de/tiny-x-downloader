@@ -29,7 +29,6 @@ class App:
         ttk.Style().theme_use("clam")
 
         saved = read_env_file(USER_ENV_FILE)
-        self.v_user = StringVar(value=saved.get("X_USERNAME", ""))
         self.v_cookies = StringVar(value=saved.get("X_COOKIES", ""))
         self.v_output = StringVar(value=saved.get("X_DOWNLOADER_OUTPUT_DIR", "~/Downloads/x-downloader"))
         self.v_archive = StringVar(value=saved.get("X_DOWNLOADER_ARCHIVE", DEFAULT_ARCHIVE))
@@ -62,7 +61,6 @@ class App:
         box.pack(fill="x")
         box.columnconfigure(1, weight=1)
         rows = [
-            ("X username (no @)", self.v_user, None),
             ("Cookies file", self.v_cookies, self._pick_cookies),
             ("Download folder", self.v_output, self._pick_output),
             ("Archive file", self.v_archive, self._pick_archive),
@@ -131,7 +129,7 @@ class App:
             self.v_archive.set(f)
 
     def _settings(self) -> Settings:
-        s = Settings.from_values(self.v_user.get(), self.v_cookies.get(),
+        s = Settings.from_values(self.v_cookies.get(),
                                  self.v_output.get(), self.v_archive.get())
         parse_hhmm(self.v_time.get())
         return s
@@ -143,7 +141,6 @@ class App:
             messagebox.showerror("Invalid settings", str(exc))
             return False
         write_env_file(USER_ENV_FILE, {
-            "X_USERNAME": self.v_user.get().strip().lstrip("@"),
             "X_COOKIES": self.v_cookies.get().strip(),
             "X_DOWNLOADER_OUTPUT_DIR": self.v_output.get().strip(),
             "X_DOWNLOADER_ARCHIVE": self.v_archive.get().strip(),

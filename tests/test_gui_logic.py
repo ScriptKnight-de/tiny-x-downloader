@@ -33,9 +33,9 @@ def test_env_file_roundtrip_keeps_other_lines(tmp_path):
 def test_from_values_validation(tmp_path):
     import pytest
     with pytest.raises(ValueError):
-        Settings.from_values("me", "  ", "x", "y")
-    st = Settings.from_values("@me", "~/c.txt", "", "")
-    assert st.username == "me" and st.output_dir.name == "downloads"
+        Settings.from_values("  ", "x", "y")
+    st = Settings.from_values("~/c.txt", "", "")
+    assert st.output_dir.name == "downloads"
 
 
 def _fake(monkeypatch, script):
@@ -43,7 +43,7 @@ def _fake(monkeypatch, script):
 
 
 def test_run_source_streams_lines(tmp_path, monkeypatch):
-    st = Settings("me", tmp_path / "c", tmp_path / "o", tmp_path / "a" / "a.sqlite3")
+    st = Settings(tmp_path / "c", tmp_path / "o", tmp_path / "a" / "a.sqlite3")
     st.archive.parent.mkdir()
     _fake(monkeypatch, "print('/o/x.jpg'); print('# /o/y.jpg')")
     got = []
@@ -52,7 +52,7 @@ def test_run_source_streams_lines(tmp_path, monkeypatch):
 
 
 def test_run_source_cancel(tmp_path, monkeypatch):
-    st = Settings("me", tmp_path / "c", tmp_path / "o", tmp_path / "a" / "a.sqlite3")
+    st = Settings(tmp_path / "c", tmp_path / "o", tmp_path / "a" / "a.sqlite3")
     st.archive.parent.mkdir()
     _fake(monkeypatch, "import time\nfor i in range(100):\n print(i, flush=True); time.sleep(0.05)")
     cancel = threading.Event()

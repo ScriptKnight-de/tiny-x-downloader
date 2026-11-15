@@ -30,7 +30,6 @@ def _path(value: str) -> Path:
 
 @dataclass(frozen=True)
 class Settings:
-    username: str
     cookies: Path
     output_dir: Path
     archive: Path
@@ -40,11 +39,10 @@ class Settings:
         return self.archive.with_name("state.json")
 
     @classmethod
-    def from_values(cls, username: str, cookies: str, output_dir: str, archive: str) -> "Settings":
+    def from_values(cls, cookies: str, output_dir: str, archive: str) -> "Settings":
         if not cookies.strip():
             raise ValueError("cookies file is not set")
         return cls(
-            username=username.strip().lstrip("@"),
             cookies=_path(cookies.strip()),
             output_dir=_path(output_dir.strip() or "downloads"),
             archive=_path(archive.strip() or DEFAULT_ARCHIVE),
@@ -55,7 +53,6 @@ class Settings:
         if not os.environ.get("X_COOKIES", "").strip():
             raise ValueError("X_COOKIES is not set (see .env.example)")
         return cls.from_values(
-            os.environ.get("X_USERNAME", ""),
             os.environ["X_COOKIES"],
             os.environ.get("X_DOWNLOADER_OUTPUT_DIR", "downloads"),
             os.environ.get("X_DOWNLOADER_ARCHIVE", DEFAULT_ARCHIVE),

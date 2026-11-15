@@ -9,7 +9,6 @@ services:
     user: "${PUID:-1000}:${PGID:-1000}"
     environment:
       TZ: ${TZ:-Europe/Berlin}
-      X_USERNAME: ${X_USERNAME:?set X_USERNAME in .env}
       X_SYNC_TIME: ${X_SYNC_TIME:-04:00}
       X_RUN_ON_START: ${X_RUN_ON_START:-false}
     volumes:

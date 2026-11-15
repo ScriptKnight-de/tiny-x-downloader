@@ -17,7 +17,7 @@ content freely and it will never be fetched again. Don't delete the archive.
 ## Docker (recommended)
 
 ```bash
-cp .env.example .env                  # set X_USERNAME, PUID/PGID (id -u / id -g), TZ, X_SYNC_TIME
+cp .env.example .env                  # set PUID/PGID (id -u / id -g), TZ, X_SYNC_TIME
 mkdir -p config data downloads        # create as your user, otherwise Docker creates them as root
 cp /path/to/cookies.txt config/cookies.txt && chmod 600 config/cookies.txt
 docker compose up -d --build         # build locally ...
@@ -40,7 +40,7 @@ One-off commands: `docker compose run --rm x-downloader sync --dry-run`.
 
 ## Desktop app (GUI + AppImage)
 
-`x-downloader gui` opens a small window: enter your username, cookies file, download folder and
+`x-downloader gui` opens a small window: enter your cookies file, download folder and
 archive location, press **Sync now** (or **Dry run**), and watch the current file, counters and
 the log. Settings are saved to `~/.config/x-downloader/env`. An optional daily sync runs while
 the window is open.
@@ -74,7 +74,7 @@ Setup once: add repository secrets `REGISTRY_USER` (your Forgejo user) and `REGI
 python3 -m venv .venv && . .venv/bin/activate   # or: uv venv && uv pip install -e .
 pip install -e .
 mkdir -p ~/.config/x-downloader
-cp .env.example ~/.config/x-downloader/env      # edit: X_USERNAME, paths
+cp .env.example ~/.config/x-downloader/env      # edit: paths
 ```
 
 X has no free API for likes/bookmarks, so this reads them with your logged-in browser session:
