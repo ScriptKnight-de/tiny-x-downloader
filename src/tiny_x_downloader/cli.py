@@ -64,7 +64,6 @@ def main(argv: list[str] | None = None) -> int:
         load_env_files()
         if args.command == "daemon":
             settings = Settings.from_env()
-            print(DONATE_TEXT, flush=True)
             run_daemon(lambda: sync(settings), args.time, args.run_on_start)
             return 0
         return sync(Settings.from_env(), tuple(args.source or SOURCES),

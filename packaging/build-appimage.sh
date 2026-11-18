@@ -42,8 +42,6 @@ install -m755 "$ROOT/packaging/AppRun" "$BUILD/AppDir/AppRun"
 install -m644 "$ROOT/packaging/tiny-x-downloader.desktop" "$BUILD/AppDir/tiny-x-downloader.desktop"
 install -m644 "$ROOT/packaging/tiny-x-downloader.svg" "$BUILD/AppDir/tiny-x-downloader.svg"
 install -Dm644 "$ROOT/DONATE.md" "$BUILD/AppDir/usr/share/doc/tiny-x-downloader/DONATE.md"
-install -Dm644 "$ROOT/assets/kofi/support_me_on_kofi_blue.png" \
-    "$BUILD/AppDir/usr/share/doc/tiny-x-downloader/assets/kofi/support_me_on_kofi_blue.png"
 install -Dm644 "$ROOT/packaging/tiny-x-downloader.desktop" \
     "$BUILD/AppDir/usr/share/applications/tiny-x-downloader.desktop"
 install -Dm644 "$ROOT/packaging/tiny-x-downloader.appdata.xml" \

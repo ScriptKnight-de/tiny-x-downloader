@@ -1,115 +1,152 @@
 # tiny-x-downloader
 
-Daily sync of the **images and videos** from the posts you **liked** and **bookmarked** on X (Twitter).
-Built on [gallery-dl](https://github.com/mikf/gallery-dl).
+Keep a local copy of the **images and videos** from the posts you **liked** and **bookmarked**
+on X (Twitter). It runs once a day (or whenever you press a button), downloads only what is new,
+and never fetches the same file twice.
 
-[![Support me on Ko-fi](assets/kofi/support_me_on_kofi_blue.png)](https://ko-fi.com/scriptknight)
+- **Set it and forget it:** a Docker container or a systemd timer syncs every night.
+- **Or click a button:** a small desktop app (AppImage) with live progress.
+- **Your files, your rules:** move, rename or delete downloads freely; the tool remembers
+  what it already got.
+- Built on [gallery-dl](https://github.com/mikf/gallery-dl).
 
-## How "already downloaded" works
+> **Heads-up:** X has no free API for likes and bookmarks, so this uses your logged-in browser
+> session (a `cookies.txt` export). Automated access may conflict with X's terms. Use your own
+> account, at your own risk.
 
-Every downloaded file is recorded (post id + media index) in an SQLite archive that lives
-**outside** the output folder (default `~/.local/share/tiny-x-downloader/archive.sqlite3`).
-Because the memory is independent of the files, you can move, rename or delete downloaded
-content freely and it will never be fetched again. Don't delete the archive.
+## Quick start
 
-- First run per source (likes / bookmarks): full backfill of the whole timeline.
-- Later runs: newest-first scan that stops after 30 consecutive already-known files.
-  Use `--full` to force a complete rescan.
+1. **Export your cookies** (once, see [Getting your cookies](#getting-your-cookies)).
+2. **Pick how you want to run it:**
 
-## Docker (recommended)
+| I want to… | Use |
+|---|---|
+| run it on a server or NAS, hands-off | [Docker](#docker) |
+| click a button on my Linux desktop | [AppImage](#desktop-app-appimage) |
+| use the command line / a systemd timer | [pip install](#command-line) |
+
+## Getting your cookies
+
+1. Log in to [x.com](https://x.com) in your browser.
+2. Install a "Get cookies.txt" extension and export the cookies for `x.com` as a Netscape-format
+   `cookies.txt`.
+3. Keep that file private: `chmod 600 cookies.txt`.
+
+Cookies expire now and then. If a run reports `AuthRequired`, export a fresh file and replace
+the old one; the next run picks it up.
+
+## Docker
 
 ```bash
-cp .env.example .env                  # set PUID/PGID (id -u / id -g), TZ, X_SYNC_TIME
-mkdir -p config data downloads        # create as your user, otherwise Docker creates them as root
+git clone https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader.git
+cd tiny-x-downloader
+
+cp .env.example .env                     # set PUID/PGID (`id -u`, `id -g`), TZ and X_SYNC_TIME
+mkdir -p config data downloads           # create these as your user, not as root
 cp /path/to/cookies.txt config/cookies.txt && chmod 600 config/cookies.txt
-docker compose up -d --build         # build locally ...
-# ... or use the image published by the Forgejo workflow (see "CI image" below):
-# docker login forgejo.scriptknight.de && docker compose pull && docker compose up -d
+
+docker compose pull && docker compose up -d     # use the published image
+# docker compose up -d --build           # ...or build it yourself
 docker compose logs -f
 ```
 
-The container runs `tiny-x-downloader daemon`: it syncs once per day at `X_SYNC_TIME` (local time
-per `TZ`) and keeps running if a sync fails (e.g. expired cookies, replace the file and the
-next run picks it up). Set `X_RUN_ON_START=true` to also sync right after start.
+The container syncs once per day at `X_SYNC_TIME` (local time, per `TZ`) and keeps running even if
+a sync fails. Set `X_RUN_ON_START=true` to also sync right after it starts.
 
-| Host path (default) | Container | Purpose |
+| Host folder | In the container | What it is |
 |---|---|---|
-| `./config/cookies.txt` | `/config/cookies.txt` (ro) | your x.com session cookies |
-| `./data` | `/data` | archive DB + state: **keep this**, it is the memory of what was downloaded |
-| `./downloads` | `/downloads` | media (`likes/`, `bookmarks/`); move files out freely |
+| `./config/cookies.txt` | `/config/cookies.txt` (read-only) | your X session cookies |
+| `./data` | `/data` | the archive database, **keep this** |
+| `./downloads` | `/downloads` | your media in `likes/` and `bookmarks/` |
 
-One-off commands: `docker compose run --rm tiny-x-downloader sync --dry-run`.
-
-## Desktop app (GUI + AppImage)
-
-`tiny-x-downloader gui` opens a small window: enter your cookies file, download folder and
-archive location, press **Sync now** (or **Dry run**), and watch the current file, counters and
-the log. Settings are saved to `~/.config/tiny-x-downloader/env`. An optional daily sync runs while
-the window is open.
-
-Build a self-contained AppImage (bundles Python + Tk, x86_64 only):
+Try it without downloading anything:
 
 ```bash
-./packaging/build-appimage.sh      # -> dist/tiny-x-downloader-<version>-x86_64.AppImage
-chmod +x dist/*.AppImage && ./dist/tiny-x-downloader-*.AppImage          # opens the GUI
-./dist/tiny-x-downloader-*.AppImage sync --dry-run                       # CLI use works too
+docker compose run --rm tiny-x-downloader sync --dry-run
 ```
 
-The script downloads a pinned python-build-standalone and appimagetool and verifies their SHA-256.
+## Desktop app (AppImage)
 
-## CI image
-
-`.forgejo/workflows/build.yml` runs the tests, then builds the Alpine-based image
-(`linux/amd64` + `linux/arm64`) and pushes it to
-`forgejo.scriptknight.de/scriptknight/tiny-x-downloader` on every push to `main`
-(`latest`, `sha-<short>`) and on `v*` tags (`1.2.3`, `1.2`).
-
-Setup once: add repository secrets `REGISTRY_USER` (your Forgejo user) and `REGISTRY_TOKEN`
-(access token with the `write:package` scope), and make sure a Forgejo runner with the label
-`docker` and Docker access is registered.
-
-## Without Docker
-
-## Setup
+Download `tiny-x-downloader-<version>-x86_64.AppImage` from the
+[Releases](https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader/releases) page, then:
 
 ```bash
-python3 -m venv .venv && . .venv/bin/activate   # or: uv venv && uv pip install -e .
-pip install -e .
+chmod +x tiny-x-downloader-*.AppImage
+./tiny-x-downloader-*.AppImage            # opens the window
+```
+
+Choose your cookies file and download folder, then press **Sync now** (or **Dry run** to preview).
+You can watch the current file, counters and log. Settings are saved to
+`~/.config/tiny-x-downloader/env`, and an optional daily sync runs while the window is open.
+The AppImage bundles Python and Tk (Linux, x86_64) and also works as a CLI:
+`./tiny-x-downloader-*.AppImage sync --dry-run`.
+
+## Command line
+
+Needs Python 3.10 or newer.
+
+```bash
+python3 -m venv .venv && . .venv/bin/activate
+pip install .
 mkdir -p ~/.config/tiny-x-downloader
-cp .env.example ~/.config/tiny-x-downloader/env      # edit: paths
+cp .env.example ~/.config/tiny-x-downloader/env     # then edit the paths (X_COOKIES, ...)
+
+tiny-x-downloader sync --dry-run                    # list what would be downloaded
+tiny-x-downloader sync                              # likes + bookmarks
+tiny-x-downloader sync --source bookmarks           # only one source
+tiny-x-downloader sync --full                       # rescan the whole timeline
+tiny-x-downloader install-timer --time 04:00        # daily systemd user timer
 ```
 
-X has no free API for likes/bookmarks, so this reads them with your logged-in browser session:
-export your x.com cookies as Netscape `cookies.txt` (e.g. with a "Get cookies.txt" browser
-extension) to the path in `X_COOKIES`. Keep that file private (`chmod 600`). Cookies expire
-or get invalidated now and then; if a run reports `AuthRequired`, export fresh ones.
-Automated access may conflict with X's terms; use your own account, at your own risk.
-
-## Usage
-
-```bash
-tiny-x-downloader sync --dry-run          # list what would be downloaded
-tiny-x-downloader sync                    # likes + bookmarks
-tiny-x-downloader sync --source bookmarks
-tiny-x-downloader install-timer --time 04:00   # daily systemd user timer (runs missed jobs, Persistent=true)
-```
-
-Output: `<output dir>/likes/` and `<output dir>/bookmarks/`, files named
+Files end up in `<output dir>/likes/` and `<output dir>/bookmarks/`, named
 `<author>_<post-id>_<n>.<ext>`.
 
-Settings come from environment variables, `./.env` or `~/.config/tiny-x-downloader/env`
-(see `.env.example`).
+## Settings
+
+Set these as environment variables, in `./.env`, or in `~/.config/tiny-x-downloader/env`
+(see [`.env.example`](.env.example) for a commented template).
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `X_COOKIES` | none, required | path to your `cookies.txt` |
+| `TINY_X_DOWNLOADER_OUTPUT_DIR` | `downloads` | where media is saved |
+| `TINY_X_DOWNLOADER_ARCHIVE` | `~/.local/share/tiny-x-downloader/archive.sqlite3` | the "already downloaded" database |
+| `X_SYNC_TIME` | `04:00` | daily sync time for the Docker daemon (`HH:MM`) |
+| `X_RUN_ON_START` | `false` | also sync when the daemon starts |
+
+## How "already downloaded" works
+
+Every file is recorded (post id + media index) in an SQLite archive that lives **outside** the
+download folder. Because the memory is independent of your files, you can move, rename or delete
+downloads and they will not come back. Just don't delete the archive.
+
+- **First run** per source (likes / bookmarks): full backfill of the whole timeline.
+- **Later runs:** scan newest first and stop after 30 consecutive already-known files.
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| `AuthRequired` | your cookies expired; export a new `cookies.txt` |
+| `X_COOKIES is not set` | set `X_COOKIES` in `.env` or `~/.config/tiny-x-downloader/env` |
+| Files owned by root (Docker) | create `config`, `data`, `downloads` as your user and set `PUID`/`PGID` |
+| It stops early and misses old posts | run once with `sync --full` |
 
 ## Development
 
 ```bash
 pip install -e ".[dev]" && pytest
+./packaging/build-appimage.sh      # builds dist/tiny-x-downloader-<version>-x86_64.AppImage
 ```
 
-## Support
+CI (`.forgejo/workflows/build.yml`) runs the tests and publishes the multi-arch Docker image
+(`linux/amd64`, `linux/arm64`) on every push to `main` and on `v*` tags.
 
-tiny-x-downloader is free and open source. If it is useful to you, you can support its
-development on [Ko-fi](https://ko-fi.com/scriptknight), see also [DONATE.md](DONATE.md).
-The same info is built into the tools: `tiny-x-downloader donate`, the **Support on Ko-fi**
-button in the GUI/AppImage, the daemon start-up log and the Docker image
-(`/usr/share/doc/tiny-x-downloader/DONATE.md`).
+## License
+
+[MIT](LICENSE)
+
+---
+
+<sub>Free and open source. If it saves you time, you can say thanks on
+[Ko-fi](https://ko-fi.com/scriptknight).</sub>

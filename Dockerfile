@@ -24,7 +24,6 @@ ENV X_COOKIES=/config/cookies.txt \
     TINY_X_DOWNLOADER_ARCHIVE=/data/archive.sqlite3
 
 COPY DONATE.md /usr/share/doc/tiny-x-downloader/DONATE.md
-COPY assets/kofi/support_me_on_kofi_blue.png /usr/share/doc/tiny-x-downloader/assets/kofi/support_me_on_kofi_blue.png
 
 RUN mkdir -p /data /downloads /config && chmod 777 /data
 VOLUME ["/data", "/downloads"]
