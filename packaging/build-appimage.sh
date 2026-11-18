@@ -44,9 +44,11 @@ install -m644 "$ROOT/packaging/tiny-x-downloader.svg" "$BUILD/AppDir/tiny-x-down
 install -Dm644 "$ROOT/DONATE.md" "$BUILD/AppDir/usr/share/doc/tiny-x-downloader/DONATE.md"
 install -Dm644 "$ROOT/assets/kofi/support_me_on_kofi_blue.png" \
     "$BUILD/AppDir/usr/share/doc/tiny-x-downloader/assets/kofi/support_me_on_kofi_blue.png"
+install -Dm644 "$ROOT/packaging/tiny-x-downloader.desktop" \
+    "$BUILD/AppDir/usr/share/applications/tiny-x-downloader.desktop"
 install -Dm644 "$ROOT/packaging/tiny-x-downloader.appdata.xml" \
     "$BUILD/AppDir/usr/share/metainfo/tiny-x-downloader.appdata.xml"
 ln -sf tiny-x-downloader.svg "$BUILD/AppDir/.DirIcon"
 
-ARCH=x86_64 "$BUILD/cache/appimagetool" --appimage-extract-and-run "$BUILD/AppDir" "$OUT"
+ARCH=x86_64 "$BUILD/cache/appimagetool" --appimage-extract-and-run --no-appstream "$BUILD/AppDir" "$OUT"
 echo "built: $OUT"
