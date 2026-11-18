@@ -20,14 +20,15 @@ classifiers = [
     "Topic :: Multimedia",
 ]
 
-[project.urls]
-Homepage = "https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader"
-Issues = "https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader/issues"
-Donate = "https://ko-fi.com/scriptknight"
 dependencies = ["gallery-dl>=1.30"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+
+[project.urls]
+Homepage = "https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader"
+Issues = "https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader/issues"
+Donate = "https://ko-fi.com/scriptknight"
 
 [project.scripts]
 tiny-x-downloader = "tiny_x_downloader.cli:main"
