@@ -10,6 +10,7 @@ import os
 
 from .config import Settings, load_env_files
 from .daemon import run_daemon
+from .donate import DONATE_TEXT
 from .sync import SOURCES, sync
 from .timer import install_timer
 
@@ -18,6 +19,8 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="tiny-x-downloader",
         description="Download images and videos from your liked and bookmarked X posts.",
+        epilog=DONATE_TEXT,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     p.add_argument("-V", "--version", action="version", version=f"%(prog)s {__version__}")
     sub = p.add_subparsers(dest="command", required=True)
@@ -37,6 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
                    help="also sync immediately at startup (env X_RUN_ON_START)")
 
     sub.add_parser("gui", help="open the graphical settings and status window")
+    sub.add_parser("donate", help="show how to support the project (Ko-fi)")
 
     t = sub.add_parser("install-timer", help="install a daily systemd user timer")
     t.add_argument("--time", default="04:00", help="HH:MM local time (default 04:00)")
@@ -50,6 +54,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "install-timer":
             install_timer(args.time, enable=not args.no_enable)
             return 0
+        if args.command == "donate":
+            print(DONATE_TEXT)
+            return 0
         if args.command == "gui":
             from .gui import run_gui  # lazy: needs tkinter
 
@@ -57,6 +64,7 @@ def main(argv: list[str] | None = None) -> int:
         load_env_files()
         if args.command == "daemon":
             settings = Settings.from_env()
+            print(DONATE_TEXT, flush=True)
             run_daemon(lambda: sync(settings), args.time, args.run_on_start)
             return 0
         return sync(Settings.from_env(), tuple(args.source or SOURCES),

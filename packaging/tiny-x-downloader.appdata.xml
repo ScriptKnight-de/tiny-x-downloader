@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>tiny-x-downloader</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>tiny-x-downloader</name>
+  <summary>Download media from your liked and bookmarked X posts</summary>
+  <description>
+    <p>Daily sync of the images and videos from the posts you liked and bookmarked on X (Twitter).</p>
+  </description>
+  <launchable type="desktop-id">tiny-x-downloader.desktop</launchable>
+  <url type="homepage">https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader</url>
+  <url type="donation">https://ko-fi.com/scriptknight</url>
+</component>

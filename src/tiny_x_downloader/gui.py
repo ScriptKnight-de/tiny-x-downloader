@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import queue
 import threading
+import webbrowser
 from datetime import datetime
 from tkinter import BooleanVar, StringVar, Tk, filedialog, messagebox, ttk
 from tkinter.scrolledtext import ScrolledText
@@ -11,6 +12,7 @@ from tkinter.scrolledtext import ScrolledText
 from . import __version__
 from .config import DEFAULT_ARCHIVE, USER_ENV_FILE, Settings, read_env_file, write_env_file
 from .daemon import next_run, parse_hhmm
+from .donate import DONATE_URL
 from .progress import Progress
 from .sync import sync
 
@@ -95,6 +97,8 @@ class App:
         self.btn_stop = ttk.Button(bar, text="Stop", command=self._stop, state="disabled")
         self.btn_stop.pack(side="left")
         ttk.Checkbutton(bar, text="Full rescan", variable=self.v_full).pack(side="left", padx=12)
+        ttk.Button(bar, text="Support on Ko-fi",
+                   command=lambda: webbrowser.open(DONATE_URL)).pack(side="right")
 
         ttk.Label(ctl, textvariable=self.v_status, font=("TkDefaultFont", 10, "bold")).pack(
             anchor="w", pady=(8, 0))

@@ -3,6 +3,8 @@
 Daily sync of the **images and videos** from the posts you **liked** and **bookmarked** on X (Twitter).
 Built on [gallery-dl](https://github.com/mikf/gallery-dl).
 
+[![Support me on Ko-fi](assets/kofi/support_me_on_kofi_blue.png)](https://ko-fi.com/scriptknight)
+
 ## How "already downloaded" works
 
 Every downloaded file is recorded (post id + media index) in an SQLite archive that lives
@@ -103,3 +105,11 @@ Settings come from environment variables, `./.env` or `~/.config/tiny-x-download
 ```bash
 pip install -e ".[dev]" && pytest
 ```
+
+## Support
+
+tiny-x-downloader is free and open source. If it is useful to you, you can support its
+development on [Ko-fi](https://ko-fi.com/scriptknight), see also [DONATE.md](DONATE.md).
+The same info is built into the tools: `tiny-x-downloader donate`, the **Support on Ko-fi**
+button in the GUI/AppImage, the daemon start-up log and the Docker image
+(`/usr/share/doc/tiny-x-downloader/DONATE.md`).

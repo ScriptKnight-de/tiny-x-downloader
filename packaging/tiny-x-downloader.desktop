@@ -6,3 +6,8 @@ Exec=tiny-x-downloader
 Icon=tiny-x-downloader
 Categories=Network;Utility;
 Terminal=false
+Actions=Donate;
+
+[Desktop Action Donate]
+Name=Support on Ko-fi
+Exec=xdg-open https://ko-fi.com/scriptknight
