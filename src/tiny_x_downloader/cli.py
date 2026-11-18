@@ -16,7 +16,7 @@ from .timer import install_timer
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="x-downloader",
+        prog="tiny-x-downloader",
         description="Download images and videos from your liked and bookmarked X posts.",
     )
     p.add_argument("-V", "--version", action="version", version=f"%(prog)s {__version__}")

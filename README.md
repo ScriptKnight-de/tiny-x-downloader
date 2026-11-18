@@ -1,4 +1,4 @@
-# x-downloader
+# tiny-x-downloader
 
 Daily sync of the **images and videos** from the posts you **liked** and **bookmarked** on X (Twitter).
 Built on [gallery-dl](https://github.com/mikf/gallery-dl).
@@ -6,7 +6,7 @@ Built on [gallery-dl](https://github.com/mikf/gallery-dl).
 ## How "already downloaded" works
 
 Every downloaded file is recorded (post id + media index) in an SQLite archive that lives
-**outside** the output folder (default `~/.local/share/x-downloader/archive.sqlite3`).
+**outside** the output folder (default `~/.local/share/tiny-x-downloader/archive.sqlite3`).
 Because the memory is independent of the files, you can move, rename or delete downloaded
 content freely and it will never be fetched again. Don't delete the archive.
 
@@ -26,7 +26,7 @@ docker compose up -d --build         # build locally ...
 docker compose logs -f
 ```
 
-The container runs `x-downloader daemon`: it syncs once per day at `X_SYNC_TIME` (local time
+The container runs `tiny-x-downloader daemon`: it syncs once per day at `X_SYNC_TIME` (local time
 per `TZ`) and keeps running if a sync fails (e.g. expired cookies, replace the file and the
 next run picks it up). Set `X_RUN_ON_START=true` to also sync right after start.
 
@@ -36,21 +36,21 @@ next run picks it up). Set `X_RUN_ON_START=true` to also sync right after start.
 | `./data` | `/data` | archive DB + state: **keep this**, it is the memory of what was downloaded |
 | `./downloads` | `/downloads` | media (`likes/`, `bookmarks/`); move files out freely |
 
-One-off commands: `docker compose run --rm x-downloader sync --dry-run`.
+One-off commands: `docker compose run --rm tiny-x-downloader sync --dry-run`.
 
 ## Desktop app (GUI + AppImage)
 
-`x-downloader gui` opens a small window: enter your cookies file, download folder and
+`tiny-x-downloader gui` opens a small window: enter your cookies file, download folder and
 archive location, press **Sync now** (or **Dry run**), and watch the current file, counters and
-the log. Settings are saved to `~/.config/x-downloader/env`. An optional daily sync runs while
+the log. Settings are saved to `~/.config/tiny-x-downloader/env`. An optional daily sync runs while
 the window is open.
 
 Build a self-contained AppImage (bundles Python + Tk, x86_64 only):
 
 ```bash
-./packaging/build-appimage.sh      # -> dist/x-downloader-<version>-x86_64.AppImage
-chmod +x dist/*.AppImage && ./dist/x-downloader-*.AppImage          # opens the GUI
-./dist/x-downloader-*.AppImage sync --dry-run                       # CLI use works too
+./packaging/build-appimage.sh      # -> dist/tiny-x-downloader-<version>-x86_64.AppImage
+chmod +x dist/*.AppImage && ./dist/tiny-x-downloader-*.AppImage          # opens the GUI
+./dist/tiny-x-downloader-*.AppImage sync --dry-run                       # CLI use works too
 ```
 
 The script downloads a pinned python-build-standalone and appimagetool and verifies their SHA-256.
@@ -59,7 +59,7 @@ The script downloads a pinned python-build-standalone and appimagetool and verif
 
 `.forgejo/workflows/build.yml` runs the tests, then builds the Alpine-based image
 (`linux/amd64` + `linux/arm64`) and pushes it to
-`forgejo.scriptknight.de/scriptknight/x-downloader` on every push to `main`
+`forgejo.scriptknight.de/scriptknight/tiny-x-downloader` on every push to `main`
 (`latest`, `sha-<short>`) and on `v*` tags (`1.2.3`, `1.2`).
 
 Setup once: add repository secrets `REGISTRY_USER` (your Forgejo user) and `REGISTRY_TOKEN`
@@ -73,8 +73,8 @@ Setup once: add repository secrets `REGISTRY_USER` (your Forgejo user) and `REGI
 ```bash
 python3 -m venv .venv && . .venv/bin/activate   # or: uv venv && uv pip install -e .
 pip install -e .
-mkdir -p ~/.config/x-downloader
-cp .env.example ~/.config/x-downloader/env      # edit: paths
+mkdir -p ~/.config/tiny-x-downloader
+cp .env.example ~/.config/tiny-x-downloader/env      # edit: paths
 ```
 
 X has no free API for likes/bookmarks, so this reads them with your logged-in browser session:
@@ -86,16 +86,16 @@ Automated access may conflict with X's terms; use your own account, at your own 
 ## Usage
 
 ```bash
-x-downloader sync --dry-run          # list what would be downloaded
-x-downloader sync                    # likes + bookmarks
-x-downloader sync --source bookmarks
-x-downloader install-timer --time 04:00   # daily systemd user timer (runs missed jobs, Persistent=true)
+tiny-x-downloader sync --dry-run          # list what would be downloaded
+tiny-x-downloader sync                    # likes + bookmarks
+tiny-x-downloader sync --source bookmarks
+tiny-x-downloader install-timer --time 04:00   # daily systemd user timer (runs missed jobs, Persistent=true)
 ```
 
 Output: `<output dir>/likes/` and `<output dir>/bookmarks/`, files named
 `<author>_<post-id>_<n>.<ext>`.
 
-Settings come from environment variables, `./.env` or `~/.config/x-downloader/env`
+Settings come from environment variables, `./.env` or `~/.config/tiny-x-downloader/env`
 (see `.env.example`).
 
 ## Development

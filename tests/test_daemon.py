@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pytest
 
-from x_downloader.daemon import next_run, parse_hhmm, run_daemon
+from tiny_x_downloader.daemon import next_run, parse_hhmm, run_daemon
 
 
 def test_next_run_today_and_tomorrow():

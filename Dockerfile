@@ -1,8 +1,8 @@
 FROM python:3.13-alpine
 
-LABEL org.opencontainers.image.title="x-downloader" \
+LABEL org.opencontainers.image.title="tiny-x-downloader" \
       org.opencontainers.image.description="Daily sync of media from liked and bookmarked X posts" \
-      org.opencontainers.image.source="https://forgejo.scriptknight.de/scriptknight/x-downloader"
+      org.opencontainers.image.source="https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader"
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -18,11 +18,11 @@ RUN pip install . && rm -rf /app/src /root/.cache
 
 # Defaults for container paths; override via compose/.env
 ENV X_COOKIES=/config/cookies.txt \
-    X_DOWNLOADER_OUTPUT_DIR=/downloads \
-    X_DOWNLOADER_ARCHIVE=/data/archive.sqlite3
+    TINY_X_DOWNLOADER_OUTPUT_DIR=/downloads \
+    TINY_X_DOWNLOADER_ARCHIVE=/data/archive.sqlite3
 
 RUN mkdir -p /data /downloads /config && chmod 777 /data
 VOLUME ["/data", "/downloads"]
 
-ENTRYPOINT ["x-downloader"]
+ENTRYPOINT ["tiny-x-downloader"]
 CMD ["daemon"]

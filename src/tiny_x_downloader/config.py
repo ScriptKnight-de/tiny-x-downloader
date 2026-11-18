@@ -6,9 +6,9 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-USER_ENV_FILE = Path("~/.config/x-downloader/env").expanduser()
+USER_ENV_FILE = Path("~/.config/tiny-x-downloader/env").expanduser()
 ENV_FILES = (Path(".env"), USER_ENV_FILE)
-DEFAULT_ARCHIVE = "~/.local/share/x-downloader/archive.sqlite3"
+DEFAULT_ARCHIVE = "~/.local/share/tiny-x-downloader/archive.sqlite3"
 
 
 def load_env_files(files=ENV_FILES) -> None:
@@ -54,8 +54,8 @@ class Settings:
             raise ValueError("X_COOKIES is not set (see .env.example)")
         return cls.from_values(
             os.environ["X_COOKIES"],
-            os.environ.get("X_DOWNLOADER_OUTPUT_DIR", "downloads"),
-            os.environ.get("X_DOWNLOADER_ARCHIVE", DEFAULT_ARCHIVE),
+            os.environ.get("TINY_X_DOWNLOADER_OUTPUT_DIR", "downloads"),
+            os.environ.get("TINY_X_DOWNLOADER_ARCHIVE", DEFAULT_ARCHIVE),
         )
 
 

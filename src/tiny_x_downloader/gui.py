@@ -24,14 +24,14 @@ HELP = (
 class App:
     def __init__(self, root: Tk) -> None:
         self.root = root
-        root.title(f"x-downloader {__version__}")
+        root.title(f"tiny-x-downloader {__version__}")
         root.minsize(720, 560)
         ttk.Style().theme_use("clam")
 
         saved = read_env_file(USER_ENV_FILE)
         self.v_cookies = StringVar(value=saved.get("X_COOKIES", ""))
-        self.v_output = StringVar(value=saved.get("X_DOWNLOADER_OUTPUT_DIR", "~/Downloads/x-downloader"))
-        self.v_archive = StringVar(value=saved.get("X_DOWNLOADER_ARCHIVE", DEFAULT_ARCHIVE))
+        self.v_output = StringVar(value=saved.get("TINY_X_DOWNLOADER_OUTPUT_DIR", "~/Downloads/tiny-x-downloader"))
+        self.v_archive = StringVar(value=saved.get("TINY_X_DOWNLOADER_ARCHIVE", DEFAULT_ARCHIVE))
         self.v_time = StringVar(value=saved.get("X_SYNC_TIME", "04:00"))
         self.v_daily = BooleanVar(value=saved.get("X_GUI_DAILY", "0") == "1")
         self.v_full = BooleanVar(value=False)
@@ -142,8 +142,8 @@ class App:
             return False
         write_env_file(USER_ENV_FILE, {
             "X_COOKIES": self.v_cookies.get().strip(),
-            "X_DOWNLOADER_OUTPUT_DIR": self.v_output.get().strip(),
-            "X_DOWNLOADER_ARCHIVE": self.v_archive.get().strip(),
+            "TINY_X_DOWNLOADER_OUTPUT_DIR": self.v_output.get().strip(),
+            "TINY_X_DOWNLOADER_ARCHIVE": self.v_archive.get().strip(),
             "X_SYNC_TIME": self.v_time.get().strip(),
             "X_GUI_DAILY": "1" if self.v_daily.get() else "0",
         })

@@ -6,4 +6,4 @@ export PYTHONNOUSERSITE=1
 if [ "$#" -eq 0 ]; then
     set -- gui
 fi
-exec "$HERE/opt/python/bin/python3" -m x_downloader "$@"
+exec "$HERE/opt/python/bin/python3" -m tiny_x_downloader "$@"

@@ -1,9 +1,9 @@
 import sys
 import threading
 
-from x_downloader import sync as s
-from x_downloader.config import Settings, read_env_file, write_env_file
-from x_downloader.progress import Progress
+from tiny_x_downloader import sync as s
+from tiny_x_downloader.config import Settings, read_env_file, write_env_file
+from tiny_x_downloader.progress import Progress
 
 
 def test_progress_parsing():

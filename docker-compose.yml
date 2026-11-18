@@ -1,9 +1,9 @@
 services:
-  x-downloader:
+  tiny-x-downloader:
     build: .
     # Pre-built image from the Forgejo registry; `docker compose up --build` builds locally instead
-    image: ${X_DOWNLOADER_IMAGE:-forgejo.scriptknight.de/scriptknight/x-downloader:latest}
-    container_name: x-downloader
+    image: ${TINY_X_DOWNLOADER_IMAGE:-forgejo.scriptknight.de/scriptknight/tiny-x-downloader:latest}
+    container_name: tiny-x-downloader
     restart: unless-stopped
     # Run as your host user so downloaded files are owned by you
     user: "${PUID:-1000}:${PGID:-1000}"

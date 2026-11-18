@@ -16,7 +16,7 @@ on:
 
 env:
   REGISTRY: forgejo.scriptknight.de
-  IMAGE: forgejo.scriptknight.de/scriptknight/x-downloader
+  IMAGE: forgejo.scriptknight.de/scriptknight/tiny-x-downloader
 
 jobs:
   test:

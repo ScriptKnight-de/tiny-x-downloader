@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build dist/x-downloader-<version>-x86_64.AppImage
+# Build dist/tiny-x-downloader-<version>-x86_64.AppImage
 # Bundles a relocatable CPython (with Tk) + the app. Needs: bash, curl, tar, sha256sum.
 # Both downloads are pinned to a version and verified against a SHA-256 below.
 set -euo pipefail
@@ -13,7 +13,7 @@ AIT_SHA256=ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD="$ROOT/build/appimage"
 VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' "$ROOT/pyproject.toml" | head -1)"
-OUT="$ROOT/dist/x-downloader-${VERSION}-x86_64.AppImage"
+OUT="$ROOT/dist/tiny-x-downloader-${VERSION}-x86_64.AppImage"
 
 fetch() { # url file sha256
     if [ ! -f "$2" ] || ! echo "$3  $2" | sha256sum -c --quiet 2>/dev/null; then
@@ -35,13 +35,13 @@ chmod +x "$BUILD/cache/appimagetool"
 tar -xzf "$BUILD/cache/python.tar.gz" -C "$BUILD/AppDir/opt"      # -> opt/python
 PY="$BUILD/AppDir/opt/python/bin/python3"
 "$PY" -m pip install --quiet --no-warn-script-location --no-cache-dir "$ROOT"
-"$PY" -c "import tkinter, gallery_dl, x_downloader"                 # sanity check
+"$PY" -c "import tkinter, gallery_dl, tiny_x_downloader"                 # sanity check
 find "$BUILD/AppDir/opt/python" -name __pycache__ -type d -prune -exec rm -rf {} +
 
 install -m755 "$ROOT/packaging/AppRun" "$BUILD/AppDir/AppRun"
-install -m644 "$ROOT/packaging/x-downloader.desktop" "$BUILD/AppDir/x-downloader.desktop"
-install -m644 "$ROOT/packaging/x-downloader.svg" "$BUILD/AppDir/x-downloader.svg"
-ln -sf x-downloader.svg "$BUILD/AppDir/.DirIcon"
+install -m644 "$ROOT/packaging/tiny-x-downloader.desktop" "$BUILD/AppDir/tiny-x-downloader.desktop"
+install -m644 "$ROOT/packaging/tiny-x-downloader.svg" "$BUILD/AppDir/tiny-x-downloader.svg"
+ln -sf tiny-x-downloader.svg "$BUILD/AppDir/.DirIcon"
 
 ARCH=x86_64 "$BUILD/cache/appimagetool" --appimage-extract-and-run "$BUILD/AppDir" "$OUT"
 echo "built: $OUT"

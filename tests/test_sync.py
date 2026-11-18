@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from x_downloader import sync as s
-from x_downloader.config import Settings, load_env_files
+from tiny_x_downloader import sync as s
+from tiny_x_downloader.config import Settings, load_env_files
 
 
 @pytest.fixture

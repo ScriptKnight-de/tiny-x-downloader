@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=x-downloader
+Name=tiny-x-downloader
 Comment=Download media from your liked and bookmarked X posts
-Exec=x-downloader
-Icon=x-downloader
+Exec=tiny-x-downloader
+Icon=tiny-x-downloader
 Categories=Network;Utility;
 Terminal=false
