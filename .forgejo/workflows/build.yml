@@ -23,10 +23,17 @@ jobs:
     runs-on: docker
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      - run: pip install -e ".[dev]" && pytest -q
+      - name: Install Python tooling
+        run: |
+          if ! python3 -m venv --help >/dev/null 2>&1 || ! python3 -m ensurepip --version >/dev/null 2>&1; then
+            apt-get update -qq && apt-get install -y -qq python3-venv python3-pip
+          fi
+      - name: Run tests
+        run: |
+          python3 -m venv .venv
+          . .venv/bin/activate
+          pip install -q -e ".[dev]"
+          pytest -q
 
   image:
     needs: test
