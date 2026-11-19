@@ -116,6 +116,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           TAG: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
         run: |
           api=https://api.github.com/repos/$GH_REPO
           auth="Authorization: Bearer $GH_TOKEN"
@@ -125,7 +126,7 @@ jobs:
           sums = "\n".join(open(f).read().strip() for f in sorted(__import__("glob").glob("dist/*.sha256")))
           text = (f"tiny-x-downloader {tag}\n\nDocker image: `ghcr.io/scriptknight-de/tiny-x-downloader:{tag.lstrip('v')}`\n\n"
                   f"SHA-256:\n```\n{sums}\n```\n")
-          print(json.dumps({"tag_name": tag, "name": f"tiny-x-downloader {tag.lstrip('v')}", "body": text}))
+          print(json.dumps({"tag_name": tag, "target_commitish": os.environ["SHA"], "name": f"tiny-x-downloader {tag.lstrip('v')}", "body": text}))
           PY
           )
           id=$(curl -fsS -X POST -H "$auth" -H "Accept: application/vnd.github+json" -d "$body" "$api/releases" \
