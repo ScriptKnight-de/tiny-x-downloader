@@ -1,3 +1,5 @@
+# Weekly (and on demand with rebuild=true) it rebuilds the newest release tag from scratch so
+# the base image and Alpine packages are current; this re-publishes its version tags and :latest.
 # Tests, then builds the Alpine-based image and publishes it to the Forgejo registry and
 # to GitHub Container Registry. On v* tags it also builds the AppImage and attaches it to a
 # release on both Forgejo and GitHub.
@@ -17,7 +19,15 @@ on:
   push:
     branches: [main]
     tags: ["v*"]
+  schedule:
+    # Weekly rebuild (Mondays 03:00 UTC): newest base image + OS packages, no layer cache.
+    - cron: "0 3 * * 1"
   workflow_dispatch:
+    inputs:
+      rebuild:
+        description: "Run the weekly rebuild now (latest release, fresh base image, no cache)"
+        type: boolean
+        default: false
 
 env:
   REGISTRY: forgejo.scriptknight.de
@@ -47,8 +57,25 @@ jobs:
     runs-on: docker
     env:
       DOCKER_HOST: tcp://dind:2375
+      # true for the weekly schedule and for a manual run with rebuild=true
+      REBUILD: ${{ github.event_name == 'schedule' || github.event.inputs.rebuild == 'true' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pick the release to rebuild
+        id: rel
+        if: env.REBUILD == 'true'
+        run: |
+          tag=$(git tag --list 'v[0-9]*' --sort=-v:refname | head -1)
+          [ -n "$tag" ] || { echo "no release tag found"; exit 1; }
+          git checkout -q "$tag"
+          v=${tag#v}
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "minor=${v%.*}" >> "$GITHUB_OUTPUT"
+          echo "rebuilding $tag"
 
       - name: Ensure docker CLI
         run: |
@@ -88,9 +115,11 @@ jobs:
             org.opencontainers.image.licenses=MIT
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,format=short
+            type=sha,format=short,enable=${{ env.REBUILD != 'true' }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=${{ steps.rel.outputs.version }},enable=${{ env.REBUILD == 'true' }}
+            type=raw,value=${{ steps.rel.outputs.minor }},enable=${{ env.REBUILD == 'true' }}
 
       - name: Build and push (amd64 + arm64)
         uses: docker/build-push-action@v6
@@ -98,6 +127,8 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
+          pull: true
+          no-cache: ${{ env.REBUILD == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache
@@ -106,8 +137,9 @@ jobs:
       - name: Verify the image exists in both registries
         run: |
           echo "tags pushed:"; echo "${{ steps.meta.outputs.tags }}"
-          docker buildx imagetools inspect "${{ env.IMAGE }}:sha-$(echo "$GITHUB_SHA" | cut -c1-7)" >/dev/null
-          docker buildx imagetools inspect "${{ env.GHCR_IMAGE }}:sha-$(echo "$GITHUB_SHA" | cut -c1-7)" >/dev/null
+          if [ "$REBUILD" = true ]; then t="${{ steps.rel.outputs.version }}"; else t="sha-$(echo "$GITHUB_SHA" | cut -c1-7)"; fi
+          docker buildx imagetools inspect "${{ env.IMAGE }}:$t" >/dev/null
+          docker buildx imagetools inspect "${{ env.GHCR_IMAGE }}:$t" >/dev/null
           echo "both registries OK"
 
   appimage:
