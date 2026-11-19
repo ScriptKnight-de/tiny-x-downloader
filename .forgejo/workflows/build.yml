@@ -81,6 +81,11 @@ jobs:
           images: |
             ${{ env.IMAGE }}
             ${{ env.GHCR_IMAGE }}
+          # Link the GHCR package to the public GitHub repo (it would otherwise get the Forgejo URL)
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ env.GH_REPO }}
+            org.opencontainers.image.url=https://github.com/${{ env.GH_REPO }}
+            org.opencontainers.image.licenses=MIT
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,format=short
