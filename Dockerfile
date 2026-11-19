@@ -2,7 +2,7 @@ FROM python:3.13-alpine
 
 LABEL org.opencontainers.image.title="tiny-x-downloader" \
       org.opencontainers.image.description="Daily sync of media from liked and bookmarked X posts" \
-      org.opencontainers.image.source="https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader" \
+      org.opencontainers.image.source="https://github.com/ScriptKnight-de/tiny-x-downloader" \
       org.opencontainers.image.authors="ScriptKnight" \
       de.scriptknight.donate="https://ko-fi.com/scriptknight"
 

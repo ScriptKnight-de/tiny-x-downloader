@@ -38,7 +38,7 @@ the old one; the next run picks it up.
 ## Docker
 
 ```bash
-git clone https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader.git
+git clone https://github.com/ScriptKnight-de/tiny-x-downloader.git
 cd tiny-x-downloader
 
 cp .env.example .env                     # set PUID/PGID (`id -u`, `id -g`), TZ and X_SYNC_TIME
@@ -68,7 +68,7 @@ docker compose run --rm tiny-x-downloader sync --dry-run
 ## Desktop app (AppImage)
 
 Download `tiny-x-downloader-<version>-x86_64.AppImage` from the
-[Releases](https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader/releases) page, then:
+[Releases](https://github.com/ScriptKnight-de/tiny-x-downloader/releases) page, then:
 
 ```bash
 chmod +x tiny-x-downloader-*.AppImage
@@ -132,6 +132,11 @@ downloads and they will not come back. Just don't delete the archive.
 | Files owned by root (Docker) | create `config`, `data`, `downloads` as your user and set `PUID`/`PGID` |
 | It stops early and misses old posts | run once with `sync --full` |
 
+## Questions and bug reports
+
+Please [open an issue](https://github.com/ScriptKnight-de/tiny-x-downloader/issues). Include the command you ran, the output and your
+version (`tiny-x-downloader --version`). Never post your `cookies.txt`.
+
 ## Development
 
 ```bash
@@ -140,7 +145,8 @@ pip install -e ".[dev]" && pytest
 ```
 
 CI (`.forgejo/workflows/build.yml`) runs the tests and publishes the multi-arch Docker image
-(`linux/amd64`, `linux/arm64`) on every push to `main` and on `v*` tags.
+(`linux/amd64`, `linux/arm64`) to `ghcr.io/scriptknight-de/tiny-x-downloader` on every push to `main` and on `v*` tags.
+Tagged releases also get the AppImage attached on GitHub.
 
 ## License
 

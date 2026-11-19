@@ -11,6 +11,7 @@
   <developer id="de.scriptknight"><name>ScriptKnight</name></developer>
   <content_rating type="oars-1.1"/>
   <launchable type="desktop-id">tiny-x-downloader.desktop</launchable>
-  <url type="homepage">https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader</url>
+  <url type="homepage">https://github.com/ScriptKnight-de/tiny-x-downloader</url>
+  <url type="bugtracker">https://github.com/ScriptKnight-de/tiny-x-downloader/issues</url>
   <url type="donation">https://ko-fi.com/scriptknight</url>
 </component>

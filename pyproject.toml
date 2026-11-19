@@ -26,8 +26,8 @@ dependencies = ["gallery-dl>=1.30"]
 dev = ["pytest>=8"]
 
 [project.urls]
-Homepage = "https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader"
-Issues = "https://forgejo.scriptknight.de/scriptknight/tiny-x-downloader/issues"
+Homepage = "https://github.com/ScriptKnight-de/tiny-x-downloader"
+Issues = "https://github.com/ScriptKnight-de/tiny-x-downloader/issues"
 Donate = "https://ko-fi.com/scriptknight"
 
 [project.scripts]
