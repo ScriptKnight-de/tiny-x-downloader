@@ -1,5 +1,6 @@
 # Weekly (and on demand with rebuild=true) it rebuilds the newest release tag from scratch so
-# the base image and Alpine packages are current; this re-publishes its version tags and :latest.
+# the base image and Alpine packages are current; this re-publishes its version tags and :latest
+# and then scans the result with Trivy (fails on CRITICAL vulnerabilities that have a fix).
 # Tests, then builds the Alpine-based image and publishes it to the Forgejo registry and
 # to GitHub Container Registry. On v* tags it also builds the AppImage and attaches it to a
 # release on both Forgejo and GitHub.
@@ -141,6 +142,24 @@ jobs:
           docker buildx imagetools inspect "${{ env.IMAGE }}:$t" >/dev/null
           docker buildx imagetools inspect "${{ env.GHCR_IMAGE }}:$t" >/dev/null
           echo "both registries OK"
+
+      # Weekly rebuild only: scan the freshly published image for vulnerabilities.
+      # Report HIGH+CRITICAL in the log, fail the run on CRITICAL issues that already have a fix.
+      - name: Trivy scan (weekly rebuild)
+        if: env.REBUILD == 'true'
+        run: |
+          img="${{ env.GHCR_IMAGE }}:${{ steps.rel.outputs.version }}"
+          docker pull -q aquasec/trivy:latest >/dev/null
+          trivy() { docker run --rm -v trivy-cache:/root/.cache/ aquasec/trivy:latest "$@"; }
+          status=0
+          for platform in linux/amd64 linux/arm64; do
+            echo "=== $img ($platform): HIGH and CRITICAL (report) ==="
+            trivy image --quiet --platform "$platform" --severity HIGH,CRITICAL --ignore-unfixed --exit-code 0 "$img"
+            echo "=== $img ($platform): CRITICAL with a fix available (gate) ==="
+            trivy image --quiet --platform "$platform" --severity CRITICAL --ignore-unfixed --exit-code 10 "$img" || status=$?
+          done
+          if [ "$status" -ne 0 ]; then echo "trivy gate failed (exit $status)"; exit 1; fi
+          echo "no fixable CRITICAL vulnerabilities"
 
   appimage:
     needs: test
