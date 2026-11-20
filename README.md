@@ -55,7 +55,7 @@ a sync fails. Set `X_RUN_ON_START=true` to also sync right after it starts.
 
 | Host folder | In the container | What it is |
 |---|---|---|
-| `./config/cookies.txt` | `/config/cookies.txt` (read-only) | your X session cookies |
+| `./config` | `/config` (read-only) | folder holding your X session `cookies.txt` |
 | `./data` | `/data` | the archive database, **keep this** |
 | `./downloads` | `/downloads` | your media in `likes/` and `bookmarks/` |
 
