@@ -154,5 +154,7 @@ Tagged releases also get the AppImage attached on GitHub.
 
 ---
 
-<sub>Free and open source. If it saves you time, you can say thanks on
-[Ko-fi](https://ko-fi.com/scriptknight).</sub>
+<p align="center">
+  <sub>Free and open source. If it saves you time, you can say thanks on Ko-fi.</sub><br>
+  <a href="https://ko-fi.com/scriptknight"><img src="docs/kofi_logo.png" alt="Support me on Ko-fi" height="36"></a>
+</p>
