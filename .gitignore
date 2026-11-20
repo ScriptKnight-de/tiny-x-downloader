@@ -15,3 +15,6 @@ config/
 
 build/
 dist/
+
+# graphify output (generated)
+graphify-out/
