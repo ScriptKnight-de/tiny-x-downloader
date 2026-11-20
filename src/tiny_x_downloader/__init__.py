@@ -1,3 +1,3 @@
 """tiny-x-downloader: sync media from your liked and bookmarked X posts."""
 
-__version__ = "0.3.3"
+__version__ = "0.3.4"
