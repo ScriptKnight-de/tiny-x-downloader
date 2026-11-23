@@ -113,6 +113,22 @@ Set these as environment variables, in `./.env`, or in `~/.config/tiny-x-downloa
 | `TINY_X_DOWNLOADER_ARCHIVE` | `~/.local/share/tiny-x-downloader/archive.sqlite3` | the "already downloaded" database |
 | `X_SYNC_TIME` | `04:00` | daily sync time for the Docker daemon (`HH:MM`) |
 | `X_RUN_ON_START` | `false` | also sync when the daemon starts |
+| `X_GOTIFY_URL`, `X_GOTIFY_TOKEN` | none | send alerts to [Gotify](https://gotify.net) |
+| `X_NTFY_URL`, `X_NTFY_TOKEN` | none | send alerts to [ntfy](https://ntfy.sh) (token optional) |
+| `X_WEBHOOK_URL` | none | POST alerts as JSON (`app`, `version`, `title`, `message`, `priority`) |
+| `X_COOKIE_WARN_DAYS` | `7` | warn this many days before the login cookie expires |
+
+### Alerts
+
+Set any of the notification variables above to get a message when a sync fails, when the
+login cookie is rejected or about to expire (so you can export a fresh `cookies.txt`),
+and when a failing setup recovers. Without them nothing is sent. Check your setup with
+`tiny-x-downloader notify-test` (in Docker: `docker compose run --rm tiny-x-downloader notify-test`).
+Dry runs never send alerts.
+
+The desktop app has a single **Alert webhook** field (with a **Test** button) in its settings;
+it takes any URL that accepts a JSON POST, and is saved as `X_WEBHOOK_URL`. For Gotify use
+`https://your-gotify/message?token=APP_TOKEN`.
 
 ## How "already downloaded" works
 

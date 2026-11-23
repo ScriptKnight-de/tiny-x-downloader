@@ -11,6 +11,12 @@ services:
       TZ: ${TZ:-Europe/Berlin}
       X_SYNC_TIME: ${X_SYNC_TIME:-04:00}
       X_RUN_ON_START: ${X_RUN_ON_START:-false}
+      X_GOTIFY_URL: ${X_GOTIFY_URL:-}
+      X_GOTIFY_TOKEN: ${X_GOTIFY_TOKEN:-}
+      X_NTFY_URL: ${X_NTFY_URL:-}
+      X_NTFY_TOKEN: ${X_NTFY_TOKEN:-}
+      X_WEBHOOK_URL: ${X_WEBHOOK_URL:-}
+      X_COOKIE_WARN_DAYS: ${X_COOKIE_WARN_DAYS:-7}
     volumes:
       # folder containing cookies.txt exported from your logged-in browser (read-only)
       - ${X_CONFIG_DIR:-./config}:/config:ro

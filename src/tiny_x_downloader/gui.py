@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import queue
 import threading
 import webbrowser
@@ -10,7 +12,8 @@ from tkinter import BooleanVar, StringVar, Tk, filedialog, messagebox, ttk
 from tkinter.scrolledtext import ScrolledText
 
 from . import __version__
-from .config import DEFAULT_ARCHIVE, USER_ENV_FILE, Settings, read_env_file, write_env_file
+from .notify import Notifier
+from .config import DEFAULT_ARCHIVE, USER_ENV_FILE, Settings, load_env_files, read_env_file, write_env_file
 from .daemon import next_run, parse_hhmm
 from .donate import DONATE_URL
 from .progress import Progress
@@ -34,6 +37,7 @@ class App:
         self.v_cookies = StringVar(value=saved.get("X_COOKIES", ""))
         self.v_output = StringVar(value=saved.get("TINY_X_DOWNLOADER_OUTPUT_DIR", "~/Downloads/tiny-x-downloader"))
         self.v_archive = StringVar(value=saved.get("TINY_X_DOWNLOADER_ARCHIVE", DEFAULT_ARCHIVE))
+        self.v_webhook = StringVar(value=saved.get("X_WEBHOOK_URL", ""))
         self.v_time = StringVar(value=saved.get("X_SYNC_TIME", "04:00"))
         self.v_daily = BooleanVar(value=saved.get("X_GUI_DAILY", "0") == "1")
         self.v_full = BooleanVar(value=False)
@@ -66,25 +70,31 @@ class App:
             ("Cookies file", self.v_cookies, self._pick_cookies),
             ("Download folder", self.v_output, self._pick_output),
             ("Archive file", self.v_archive, self._pick_archive),
+            ("Alert webhook", self.v_webhook, None),
         ]
         for i, (label, var, browse) in enumerate(rows):
             ttk.Label(box, text=label).grid(row=i, column=0, sticky="w", **pad)
             ttk.Entry(box, textvariable=var).grid(row=i, column=1, sticky="ew", **pad)
             if browse:
                 ttk.Button(box, text="Browse...", command=browse).grid(row=i, column=2, **pad)
+            else:
+                ttk.Button(box, text="Test", command=self._test_webhook).grid(row=i, column=2, **pad)
+        ttk.Label(box, text="Optional: a URL that gets a JSON POST when a sync fails or the login "
+                  "expires (for Gotify: https://host/message?token=...).",
+                  foreground="#555", wraplength=560).grid(row=5, column=1, columnspan=2, sticky="w", padx=8)
         ttk.Label(box, text="The archive remembers downloaded posts. Keep it, even if you "
                   "move the downloaded files.", foreground="#555").grid(
             row=4, column=1, columnspan=2, sticky="w", padx=8)
 
         daily = ttk.Frame(box)
-        daily.grid(row=5, column=0, columnspan=3, sticky="w", **pad)
+        daily.grid(row=6, column=0, columnspan=3, sticky="w", **pad)
         ttk.Checkbutton(daily, text="Sync automatically every day at", variable=self.v_daily,
                         command=self._reschedule).pack(side="left")
         ttk.Entry(daily, textvariable=self.v_time, width=6).pack(side="left", padx=4)
         ttk.Label(daily, text="(only while this window is open)").pack(side="left")
-        ttk.Button(box, text="Save settings", command=self._save).grid(row=5, column=2, **pad)
+        ttk.Button(box, text="Save settings", command=self._save).grid(row=6, column=2, **pad)
         ttk.Label(box, text=HELP, wraplength=680, foreground="#555").grid(
-            row=6, column=0, columnspan=3, sticky="w", padx=8, pady=(4, 0))
+            row=7, column=0, columnspan=3, sticky="w", padx=8, pady=(4, 0))
 
         ctl = ttk.LabelFrame(outer, text="Sync", padding=8)
         ctl.pack(fill="x", pady=(10, 0))
@@ -132,6 +142,22 @@ class App:
         if f:
             self.v_archive.set(f)
 
+    def _notifier(self) -> Notifier:
+        # the window's field is the source of truth for the webhook (empty = off)
+        return replace(Notifier.from_env(), webhook_url=self.v_webhook.get().strip())
+
+    def _test_webhook(self) -> None:
+        notifier = self._notifier()
+        if not notifier.webhook_url:
+            messagebox.showerror("Alert webhook", "Enter a webhook URL first.")
+            return
+
+        def work() -> None:
+            errs = notifier.send("test", "Notifications are working.", priority=3)
+            self.lines.put(("line", f"webhook test failed: {errs[0]}" if errs else "webhook test sent"))
+
+        threading.Thread(target=work, daemon=True).start()
+
     def _settings(self) -> Settings:
         s = Settings.from_values(self.v_cookies.get(),
                                  self.v_output.get(), self.v_archive.get())
@@ -148,6 +174,7 @@ class App:
             "X_COOKIES": self.v_cookies.get().strip(),
             "TINY_X_DOWNLOADER_OUTPUT_DIR": self.v_output.get().strip(),
             "TINY_X_DOWNLOADER_ARCHIVE": self.v_archive.get().strip(),
+            "X_WEBHOOK_URL": self.v_webhook.get().strip(),
             "X_SYNC_TIME": self.v_time.get().strip(),
             "X_GUI_DAILY": "1" if self.v_daily.get() else "0",
         })
@@ -167,6 +194,7 @@ class App:
         self.cancel.clear()
         self.progress.start()
         full = self.v_full.get()
+        notifier = self._notifier()
         self._log(f"=== {'dry run' if dry_run else 'sync'} started {datetime.now():%F %T} ===")
         self.btn_sync.state(["disabled"]); self.btn_dry.state(["disabled"])
         self.btn_stop.state(["!disabled"])
@@ -175,7 +203,8 @@ class App:
         def work() -> None:
             try:
                 code = sync(settings, full=full, dry_run=dry_run,
-                            on_line=lambda l: self.lines.put(("line", l)), cancel=self.cancel)
+                            on_line=lambda l: self.lines.put(("line", l)), cancel=self.cancel,
+                            notifier=notifier)
             except Exception as exc:  # show instead of dying silently
                 self.lines.put(("line", f"error: {exc}"))
                 code = 2
@@ -254,6 +283,7 @@ class App:
 
 
 def run_gui() -> int:
+    load_env_files()  # picks up alert settings (X_GOTIFY_URL, ...)
     root = Tk()
     App(root)
     root.mainloop()

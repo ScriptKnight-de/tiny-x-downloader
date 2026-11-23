@@ -54,3 +54,12 @@ def test_env_file_does_not_override(tmp_path, monkeypatch):
     import os
     assert os.environ["X_USERNAME"] == "fromenv" and os.environ["X_FOO"] == "bar"
     monkeypatch.delenv("X_FOO")
+
+
+def test_auth_error_detection():
+    from tiny_x_downloader.notify import looks_like_auth_error as f
+
+    assert f("[twitter][error] AuthRequired: authenticated cookies needed")
+    assert f("[twitter][error] HttpError: '401 Unauthorized'")
+    assert not f("downloads/likes/name_401_1.jpg")
+    assert not f("[twitter][info] Requesting https://x.com/i/bookmarks")

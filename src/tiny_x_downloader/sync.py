@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Callable
 
 from .config import Settings
+from .notify import Notifier, cookie_warning, looks_like_auth_error
 
 SOURCES = ("likes", "bookmarks")
 # After the first complete run, stop a source after this many consecutive
@@ -64,7 +65,10 @@ def run_source(
     dry_run: bool = False,
     on_line: Callable[[str], None] | None = None,
     cancel: threading.Event | None = None,
+    state_auth: list[str] | None = None,
 ) -> int:
+    if state_auth is None:
+        state_auth = []
     emit = on_line or (lambda line: print(line, flush=True))
     state = _load_state(settings)
     incremental = bool(state.get(source, {}).get("backfilled")) and not full
@@ -86,6 +90,8 @@ def run_source(
         assert proc.stdout is not None
         for line in proc.stdout:
             emit(line.rstrip("\n"))
+            if looks_like_auth_error(line):
+                state_auth.append(line.strip())
             if cancel is not None and cancel.is_set():
                 cancelled = True
                 proc.terminate()
@@ -111,15 +117,47 @@ def sync(
     dry_run=False,
     on_line: Callable[[str], None] | None = None,
     cancel: threading.Event | None = None,
+    notifier: Notifier | None = None,
 ) -> int:
-    settings.output_dir.mkdir(parents=True, exist_ok=True)
-    settings.archive.parent.mkdir(parents=True, exist_ok=True)
-    if not settings.cookies.is_file():
-        raise ValueError(f"cookies file not found: {settings.cookies}")
-    worst = 0
-    for source in sources:
-        code = run_source(source, settings, full, dry_run, on_line, cancel)
-        if code == CANCELLED:
-            return CANCELLED
-        worst = max(worst, code)
+    notifier = notifier if notifier is not None else Notifier.from_env()
+    alert = notifier.enabled and not dry_run
+    try:
+        settings.output_dir.mkdir(parents=True, exist_ok=True)
+        settings.archive.parent.mkdir(parents=True, exist_ok=True)
+        if not settings.cookies.is_file():
+            raise ValueError(f"cookies file not found: {settings.cookies}")
+        worst, auth_lines, failed = 0, [], []
+        for source in sources:
+            code = run_source(source, settings, full, dry_run, on_line, cancel, auth_lines)
+            if code == CANCELLED:
+                return CANCELLED
+            if code:
+                failed.append(f"{source} (exit {code})")
+            worst = max(worst, code)
+    except Exception as exc:
+        if alert:
+            notifier.send("sync crashed", str(exc))
+        raise
+    if alert:
+        _report(settings, notifier, worst, failed, auth_lines)
     return worst
+
+
+def _report(settings: Settings, notifier: Notifier, worst: int, failed: list[str],
+            auth_lines: list[str]) -> None:
+    state = _load_state(settings)
+    if auth_lines:
+        notifier.send("login expired", "gallery-dl was rejected, the session cookie is no longer "
+                      "valid. Export a fresh cookies.txt.\n" + auth_lines[-1][:300])
+        state["alert"] = "auth"
+    elif worst:
+        notifier.send("sync failed", "Failed: " + ", ".join(failed))
+        state["alert"] = "failed"
+    else:
+        warn = cookie_warning(settings.cookies, notifier.warn_days)
+        if warn:
+            notifier.send("cookie expiring", warn, priority=4)
+        if state.get("alert"):
+            notifier.send("sync recovered", "The last sync finished without errors.", priority=3)
+            state.pop("alert")
+    _save_state(settings, state)

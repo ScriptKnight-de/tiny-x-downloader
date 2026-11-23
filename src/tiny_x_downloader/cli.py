@@ -11,6 +11,7 @@ import os
 from .config import Settings, load_env_files
 from .daemon import run_daemon
 from .donate import DONATE_TEXT
+from .notify import Notifier
 from .sync import SOURCES, sync
 from .timer import install_timer
 
@@ -40,6 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
                    help="also sync immediately at startup (env X_RUN_ON_START)")
 
     sub.add_parser("gui", help="open the graphical settings and status window")
+    sub.add_parser("notify-test", help="send a test alert to the configured Gotify/ntfy/webhook")
     sub.add_parser("donate", help="show how to support the project (Ko-fi)")
 
     t = sub.add_parser("install-timer", help="install a daily systemd user timer")
@@ -62,6 +64,16 @@ def main(argv: list[str] | None = None) -> int:
 
             return run_gui()
         load_env_files()
+        if args.command == "notify-test":
+            n = Notifier.from_env()
+            if not n.enabled:
+                print("error: no notification target configured (see .env.example)", file=sys.stderr)
+                return 2
+            errors = n.send("test", "Notifications are working.", priority=3)
+            for e in errors:
+                print(f"error: {e}", file=sys.stderr)
+            print("sent" if not errors else "failed")
+            return 1 if errors else 0
         if args.command == "daemon":
             settings = Settings.from_env()
             run_daemon(lambda: sync(settings), args.time, args.run_on_start)
