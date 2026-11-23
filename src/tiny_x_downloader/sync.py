@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import fcntl
 import json
 import os
 import subprocess
@@ -19,6 +21,21 @@ SOURCES = ("likes", "bookmarks")
 # already-archived files (timelines are newest-first).
 ABORT_AFTER = 30
 CANCELLED = 130
+
+
+class AlreadyRunning(ValueError):
+    """Another sync holds the lock; not a failure worth alerting about."""
+
+
+@contextlib.contextmanager
+def _sync_lock(settings: Settings):
+    path = settings.archive.with_name("sync.lock")
+    with open(path, "a") as f:
+        try:
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise AlreadyRunning(f"another sync is already running (lock: {path})") from None
+        yield
 
 # Command used to run gallery-dl (overridable in tests)
 GALLERY_DL = [sys.executable, "-m", "gallery_dl"]
@@ -150,14 +167,17 @@ def sync(
         settings.archive.parent.mkdir(parents=True, exist_ok=True)
         if not settings.cookies.is_file():
             raise ValueError(f"cookies file not found: {settings.cookies}")
-        worst, auth_lines, failed = 0, [], []
-        for source in sources:
-            code = run_source(source, settings, full, dry_run, on_line, cancel, auth_lines)
-            if code == CANCELLED:
-                return CANCELLED
-            if code:
-                failed.append(f"{source} (exit {code})")
-            worst = max(worst, code)
+        with (contextlib.nullcontext() if dry_run else _sync_lock(settings)):
+            worst, auth_lines, failed = 0, [], []
+            for source in sources:
+                code = run_source(source, settings, full, dry_run, on_line, cancel, auth_lines)
+                if code == CANCELLED:
+                    return CANCELLED
+                if code:
+                    failed.append(f"{source} (exit {code})")
+                worst = max(worst, code)
+    except AlreadyRunning:
+        raise
     except Exception as exc:
         if alert:
             notifier.send("sync crashed", str(exc))

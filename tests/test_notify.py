@@ -106,3 +106,11 @@ def test_plaintext_warnings():
     ok = Notifier(gotify_url="https://g", gotify_token="T", ntfy_url="http://n/t",
                   webhook_url="http://w/hook")
     assert ok.plaintext_warnings() == []
+
+
+def test_overlapping_sync_sends_no_alert(rec, settings):
+    settings.archive.parent.mkdir(parents=True, exist_ok=True)
+    with s._sync_lock(settings):
+        with pytest.raises(s.AlreadyRunning):
+            s.sync(settings, notifier=Notifier(webhook_url="http://w"))
+    assert rec.calls == []

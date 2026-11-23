@@ -93,3 +93,13 @@ def test_save_state_is_atomic(settings, monkeypatch):
         s._save_state(settings, {"likes": {}})
     assert s._load_state(settings) == {"likes": {"backfilled": True}}
     assert [p.name for p in settings.state_file.parent.iterdir()] == ["state.json"]
+
+
+def test_second_sync_is_refused_while_locked(settings):
+    settings.archive.parent.mkdir(parents=True)
+    with s._sync_lock(settings):
+        with pytest.raises(s.AlreadyRunning):
+            with s._sync_lock(settings):
+                pass
+    with s._sync_lock(settings):  # released again
+        pass
