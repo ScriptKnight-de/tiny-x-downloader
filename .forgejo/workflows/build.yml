@@ -40,7 +40,7 @@ jobs:
   test:
     runs-on: docker
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Install Python tooling
         run: |
           if ! python3 -m venv --help >/dev/null 2>&1 || ! python3 -m ensurepip --version >/dev/null 2>&1; then
@@ -52,6 +52,11 @@ jobs:
           . .venv/bin/activate
           pip install -q -e ".[dev]"
           pytest -q
+      - name: Audit dependencies
+        run: |
+          . .venv/bin/activate
+          pip install -q pip-audit
+          pip-audit .
 
   image:
     needs: test
@@ -61,7 +66,7 @@ jobs:
       # true for the weekly schedule and for a manual run with rebuild=true
       REBUILD: ${{ github.event_name == 'schedule' || github.event.inputs.rebuild == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
@@ -85,18 +90,18 @@ jobs:
           fi
           for i in 1 2 3 4 5; do docker version && break; sleep 3; done
 
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: Log in to Forgejo registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.REGISTRY_USER }}
           password: ${{ secrets.REGISTRY_TOKEN }}
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ secrets.GH_USER }}
@@ -104,7 +109,7 @@ jobs:
 
       - name: Image tags and labels
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
         with:
           images: |
             ${{ env.IMAGE }}
@@ -123,7 +128,7 @@ jobs:
             type=raw,value=${{ steps.rel.outputs.minor }},enable=${{ env.REBUILD == 'true' }}
 
       - name: Build and push (amd64 + arm64)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -149,8 +154,8 @@ jobs:
         if: env.REBUILD == 'true'
         run: |
           img="${{ env.GHCR_IMAGE }}:${{ steps.rel.outputs.version }}"
-          docker pull -q aquasec/trivy:latest >/dev/null
-          trivy() { docker run --rm -v trivy-cache:/root/.cache/ aquasec/trivy:latest "$@"; }
+          docker pull -q aquasec/trivy:0.76.2 >/dev/null
+          trivy() { docker run --rm -v trivy-cache:/root/.cache/ aquasec/trivy:0.76.2 "$@"; }
           status=0
           for platform in linux/amd64 linux/arm64; do
             echo "=== $img ($platform): HIGH and CRITICAL (report) ==="
@@ -166,7 +171,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: docker
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Build AppImage
         run: |
