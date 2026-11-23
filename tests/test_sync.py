@@ -56,6 +56,21 @@ def test_env_file_does_not_override(tmp_path, monkeypatch):
     monkeypatch.delenv("X_FOO")
 
 
+def test_env_file_ignores_keys_outside_the_allowlist(tmp_path, monkeypatch):
+    import os
+    f = tmp_path / "env"
+    f.write_text("PYTHONPATH=/evil\nLD_PRELOAD=/evil.so\nPUID=1000\nTINY_X_DOWNLOADER_ARCHIVE=/a.db\n")
+    for k in ("PYTHONPATH", "LD_PRELOAD", "PUID", "TINY_X_DOWNLOADER_ARCHIVE"):
+        monkeypatch.delenv(k, raising=False)
+    load_env_files([f])
+    try:
+        assert "PYTHONPATH" not in os.environ and "LD_PRELOAD" not in os.environ
+        assert "PUID" not in os.environ
+        assert os.environ["TINY_X_DOWNLOADER_ARCHIVE"] == "/a.db"
+    finally:
+        os.environ.pop("TINY_X_DOWNLOADER_ARCHIVE", None)
+
+
 def test_auth_error_detection():
     from tiny_x_downloader.notify import looks_like_auth_error as f
 

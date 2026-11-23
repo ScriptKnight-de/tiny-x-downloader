@@ -10,6 +10,11 @@ USER_ENV_FILE = Path("~/.config/tiny-x-downloader/env").expanduser()
 ENV_FILES = (Path(".env"), USER_ENV_FILE)
 DEFAULT_ARCHIVE = "~/.local/share/tiny-x-downloader/archive.sqlite3"
 
+# Only these keys are taken from env files. Anything else (PATH, PYTHONPATH, LD_PRELOAD, ...)
+# would be inherited by the gallery-dl subprocess, so a stray .env must not be able to set it.
+ALLOWED_PREFIXES = ("X_", "TINY_X_DOWNLOADER_")
+ALLOWED_KEYS = ("TZ",)
+
 
 def load_env_files(files=ENV_FILES) -> None:
     """Load KEY=VALUE lines into os.environ without overriding existing vars."""
@@ -21,7 +26,9 @@ def load_env_files(files=ENV_FILES) -> None:
             if not line or line.startswith("#") or "=" not in line:
                 continue
             key, _, value = line.partition("=")
-            os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+            key = key.strip()
+            if key.startswith(ALLOWED_PREFIXES) or key in ALLOWED_KEYS:
+                os.environ.setdefault(key, value.strip().strip("'\""))
 
 
 def _path(value: str) -> Path:
