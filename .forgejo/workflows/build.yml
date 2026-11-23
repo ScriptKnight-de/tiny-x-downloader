@@ -56,7 +56,7 @@ jobs:
         run: |
           . .venv/bin/activate
           pip install -q pip-audit
-          pip-audit .
+          XDG_CACHE_HOME="$PWD/.cache" pip-audit .
 
   image:
     needs: test
