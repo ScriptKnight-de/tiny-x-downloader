@@ -34,6 +34,7 @@ chmod +x "$BUILD/cache/appimagetool"
 
 tar -xzf "$BUILD/cache/python.tar.gz" -C "$BUILD/AppDir/opt"      # -> opt/python
 PY="$BUILD/AppDir/opt/python/bin/python3"
+"$PY" -m pip install --quiet --no-warn-script-location --no-cache-dir --upgrade pip
 "$PY" -m pip install --quiet --no-warn-script-location --no-cache-dir "$ROOT"
 "$PY" -c "import tkinter, gallery_dl, tiny_x_downloader"                 # sanity check
 find "$BUILD/AppDir/opt/python" -name __pycache__ -type d -prune -exec rm -rf {} +
