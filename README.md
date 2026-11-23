@@ -84,6 +84,8 @@ You can watch the current file, counters and log. Settings are saved to
 `~/.config/tiny-x-downloader/env`, and an optional daily sync runs while the window is open.
 The AppImage bundles Python and Tk (Linux, x86_64) and also works as a CLI:
 `./tiny-x-downloader-*.AppImage sync --dry-run`.
+`./tiny-x-downloader-*.AppImage install-timer` sets up the daily timer for the AppImage. Keep the
+file where it is, or run that command again after moving it.
 
 ## Command line
 
