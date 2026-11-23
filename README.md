@@ -185,7 +185,12 @@ Tagged releases also get the AppImage attached on GitHub.
 
 ## License
 
-[MIT](LICENSE)
+tiny-x-downloader itself is [MIT](LICENSE) licensed.
+
+The Docker image and the AppImage also contain third-party software under its own licences, most
+notably [gallery-dl](https://github.com/mikf/gallery-dl) (GPL-2.0-only), which this tool starts as a
+separate program to do the downloading, and Python (PSF licence). Their licence texts are included
+in the images, for gallery-dl under `site-packages/gallery_dl-*.dist-info/licenses/`.
 
 ---
 
