@@ -91,3 +91,18 @@ def test_dry_run_and_missing_cookie(settings, rec, monkeypatch):
     with pytest.raises(ValueError):
         s.sync(settings, notifier=n)
     assert rec.calls[-1][1]["title"].endswith("sync crashed")
+
+
+def test_post_rejects_non_http_urls():
+    for url in ("file:///etc/passwd", "ftp://h/x", "htp://typo", "example.com/hook"):
+        with pytest.raises(ValueError):
+            notify._post(url, {"a": 1})
+
+
+def test_plaintext_warnings():
+    n = Notifier(gotify_url="http://g", gotify_token="T", ntfy_url="http://n/t", ntfy_token="T",
+                 webhook_url="http://w/hook?token=abc")
+    assert len(n.plaintext_warnings()) == 3
+    ok = Notifier(gotify_url="https://g", gotify_token="T", ntfy_url="http://n/t",
+                  webhook_url="http://w/hook")
+    assert ok.plaintext_warnings() == []

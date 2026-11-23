@@ -10,6 +10,7 @@ import os
 import re
 import time
 import urllib.request
+from urllib.parse import urlsplit
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -61,6 +62,17 @@ class Notifier:
     def enabled(self) -> bool:
         return bool((self.gotify_url and self.gotify_token) or self.ntfy_url or self.webhook_url)
 
+    def plaintext_warnings(self) -> list[str]:
+        """Targets that would send a secret over plain http:// (never includes the URL itself)."""
+        out = []
+        if self.gotify_token and self.gotify_url.lower().startswith("http://"):
+            out.append("gotify sends its token over plain http://")
+        if self.ntfy_token and self.ntfy_url.lower().startswith("http://"):
+            out.append("ntfy sends its token over plain http://")
+        if self.webhook_url.lower().startswith("http://") and "token=" in self.webhook_url.lower():
+            out.append("the webhook URL carries a token over plain http://")
+        return out
+
     def send(self, title: str, message: str, priority: int = 5) -> list[str]:
         """Deliver to every configured target; returns error strings (empty = all ok)."""
         errors: list[str] = []
@@ -90,6 +102,8 @@ class Notifier:
 
 
 def _post(url: str, body, headers: dict[str, str] | None = None) -> None:
+    if urlsplit(url).scheme not in ("http", "https"):
+        raise ValueError("alert URL must start with http:// or https://")
     if isinstance(body, bytes):
         data, ctype = body, "text/plain; charset=utf-8"
     else:

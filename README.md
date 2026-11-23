@@ -131,6 +131,9 @@ login cookie is rejected or about to expire (so you can export a fresh `cookies.
 and when a failing setup recovers. Without them nothing is sent. Check your setup with
 `tiny-x-downloader notify-test` (in Docker: `docker compose run --rm tiny-x-downloader notify-test`).
 Dry runs never send alerts.
+Gotify and ntfy tokens travel in request headers, so prefer `https://` URLs unless the server is on
+a network you trust. `notify-test` and the desktop app's **Test** button warn when a token would
+go out over plain `http://`.
 
 The desktop app has a single **Alert webhook** field (with a **Test** button) in its settings;
 it takes any URL that accepts a JSON POST, and is saved as `X_WEBHOOK_URL`. For Gotify use

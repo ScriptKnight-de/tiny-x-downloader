@@ -70,6 +70,8 @@ def main(argv: list[str] | None = None) -> int:
             if not n.enabled:
                 print("error: no notification target configured (see .env.example)", file=sys.stderr)
                 return 2
+            for w in n.plaintext_warnings():
+                print(f"warning: {w}", file=sys.stderr)
             errors = n.send("test", "Notifications are working.", priority=3)
             for e in errors:
                 print(f"error: {e}", file=sys.stderr)

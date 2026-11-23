@@ -153,6 +153,8 @@ class App:
             return
 
         def work() -> None:
+            for w in notifier.plaintext_warnings():
+                self.lines.put(("line", f"[notify] warning: {w}"))
             errs = notifier.send("test", "Notifications are working.", priority=3)
             self.lines.put(("line", f"webhook test failed: {errs[0]}" if errs else "webhook test sent"))
 
