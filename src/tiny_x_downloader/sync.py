@@ -55,7 +55,15 @@ def _load_state(settings: Settings) -> dict:
 
 
 def _save_state(settings: Settings, state: dict) -> None:
-    settings.state_file.write_text(json.dumps(state, indent=2))
+    # write to a temp file in the same folder, then swap it in: a crash can never leave a half-written state.json
+    fd, tmp = tempfile.mkstemp(dir=settings.state_file.parent, prefix="state.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(state, f, indent=2)
+        os.replace(tmp, settings.state_file)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
 
 
 def run_source(

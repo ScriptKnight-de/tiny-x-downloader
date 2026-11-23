@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -89,6 +90,14 @@ def write_env_file(path: Path, updates: dict[str, str]) -> None:
         else:
             out.append(raw)
     out += [f"{k}={v}" for k, v in remaining.items()]
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(out) + "\n")
-    path.chmod(0o600)
+    target = path.resolve()  # follow a symlinked env file (dotfile managers) instead of replacing it
+    target.parent.mkdir(parents=True, exist_ok=True)
+    # the temp file is created 0600 and swapped in: never readable by others, never half-written
+    fd, tmp = tempfile.mkstemp(dir=target.parent, prefix=target.name + ".", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write("\n".join(out) + "\n")
+        os.replace(tmp, target)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise

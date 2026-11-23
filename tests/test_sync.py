@@ -78,3 +78,18 @@ def test_auth_error_detection():
     assert f("[twitter][error] HttpError: '401 Unauthorized'")
     assert not f("downloads/likes/name_401_1.jpg")
     assert not f("[twitter][info] Requesting https://x.com/i/bookmarks")
+
+
+def test_save_state_is_atomic(settings, monkeypatch):
+    settings.state_file.parent.mkdir(parents=True)
+    s._save_state(settings, {"likes": {"backfilled": True}})
+    assert s._load_state(settings) == {"likes": {"backfilled": True}}
+
+    def boom(*a, **k):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(s.json, "dump", boom)
+    with pytest.raises(OSError):
+        s._save_state(settings, {"likes": {}})
+    assert s._load_state(settings) == {"likes": {"backfilled": True}}
+    assert [p.name for p in settings.state_file.parent.iterdir()] == ["state.json"]
