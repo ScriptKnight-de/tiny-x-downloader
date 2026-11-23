@@ -135,6 +135,16 @@ Gotify and ntfy tokens travel in request headers, so prefer `https://` URLs unle
 a network you trust. `notify-test` and the desktop app's **Test** button warn when a token would
 go out over plain `http://`.
 
+**What an alert contains:** a title and a short reason, such as which source failed, the error text
+of a crash, or the last error line gallery-dl printed (up to 300 characters). Cookie warnings also
+include the path of your `cookies.txt`, and the webhook payload adds the app name and version.
+The tool never adds your cookie contents or any downloaded media. Alerts go only to the services you
+configure; on a public server such as `ntfy.sh`, anyone who knows or guesses the topic name can read
+them, so use a long random topic name, an access token, or your own server.
+
+There is no telemetry. Apart from the alert targets you set up, the only connections are to X and
+its media servers, made by gallery-dl, plus the Ko-fi page if you click its button.
+
 The desktop app has a single **Alert webhook** field (with a **Test** button) in its settings;
 it takes any URL that accepts a JSON POST, and is saved as `X_WEBHOOK_URL`. For Gotify use
 `https://your-gotify/message?token=APP_TOKEN`.
