@@ -7,6 +7,12 @@ services:
     restart: unless-stopped
     # Run as your host user so downloaded files are owned by you
     user: "${PUID:-1000}:${PGID:-1000}"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
     environment:
       TZ: ${TZ:-Europe/Berlin}
       X_SYNC_TIME: ${X_SYNC_TIME:-04:00}

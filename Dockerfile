@@ -25,8 +25,11 @@ ENV X_COOKIES=/config/cookies.txt \
 
 COPY DONATE.md /usr/share/doc/tiny-x-downloader/DONATE.md
 
-RUN mkdir -p /data /downloads /config && chmod 777 /data
+RUN adduser -D -u 1000 app \
+ && mkdir -p /data /downloads /config \
+ && chown app:app /data /downloads
 VOLUME ["/data", "/downloads"]
+USER 1000:1000
 
 ENTRYPOINT ["tiny-x-downloader"]
 CMD ["daemon"]
