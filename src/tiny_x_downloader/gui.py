@@ -22,7 +22,7 @@ from .sync import sync
 MAX_LOG_LINES = 2000
 HELP = (
     "Cookies: log in to x.com in your browser, export the cookies as a Netscape "
-    "'cookies.txt' (browser extension \"Get cookies.txt\") and select the file here."
+    "'cookies.txt' (browser extension \"Get cookies.txt LOCALLY\") and select the file here."
 )
 
 

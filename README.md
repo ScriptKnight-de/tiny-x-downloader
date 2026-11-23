@@ -28,9 +28,13 @@ and never fetches the same file twice.
 ## Getting your cookies
 
 1. Log in to [x.com](https://x.com) in your browser.
-2. Install a "Get cookies.txt" extension and export the cookies for `x.com` as a Netscape-format
-   `cookies.txt`.
-3. Keep that file private: `chmod 600 cookies.txt`.
+2. Install the open-source extension **Get cookies.txt LOCALLY**
+   ([Chrome](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc),
+   [Firefox](https://addons.mozilla.org/firefox/addon/get-cookies-txt-locally)) and export the
+   cookies for `x.com` as a Netscape-format `cookies.txt`. Avoid look-alike extensions with a
+   similar name; an extension that can read your cookies can take over your X login.
+3. Keep that file private: `chmod 600 cookies.txt`. It is a full login to your X account: never
+   share it, and delete it when you stop using the tool.
 
 Cookies expire now and then. If a run reports `AuthRequired`, export a fresh file and replace
 the old one; the next run picks it up.
