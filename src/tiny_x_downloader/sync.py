@@ -88,14 +88,30 @@ def run_source(
         )
         cancelled = False
         assert proc.stdout is not None
-        for line in proc.stdout:
-            emit(line.rstrip("\n"))
-            if looks_like_auth_error(line):
-                state_auth.append(line.strip())
-            if cancel is not None and cancel.is_set():
-                cancelled = True
-                proc.terminate()
-                break
+        done = threading.Event()
+
+        def watch() -> None:  # stop gallery-dl even while it prints nothing (e.g. rate-limit sleep)
+            while not done.wait(0.5):
+                if cancel is not None and cancel.is_set():
+                    proc.terminate()
+                    return
+
+        threading.Thread(target=watch, daemon=True).start()
+        try:
+            for line in proc.stdout:
+                emit(line.rstrip("\n"))
+                if looks_like_auth_error(line):
+                    state_auth.append(line.strip())
+                if cancel is not None and cancel.is_set():
+                    cancelled = True
+                    proc.terminate()
+                    break
+        except BaseException:  # e.g. Ctrl+C: don't leave gallery-dl running
+            proc.terminate()
+            raise
+        finally:
+            done.set()
+        cancelled = cancelled or (cancel is not None and cancel.is_set())
         try:
             code = proc.wait(timeout=10)
         except subprocess.TimeoutExpired:

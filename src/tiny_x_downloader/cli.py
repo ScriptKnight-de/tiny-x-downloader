@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import threading
 
 from . import __version__
 import os
@@ -76,13 +77,17 @@ def main(argv: list[str] | None = None) -> int:
             return 1 if errors else 0
         if args.command == "daemon":
             settings = Settings.from_env()
-            run_daemon(lambda: sync(settings), args.time, args.run_on_start)
+            stop = threading.Event()  # set by SIGTERM/SIGINT; also stops a running sync
+            run_daemon(lambda: sync(settings, cancel=stop), args.time, args.run_on_start, stop)
             return 0
         return sync(Settings.from_env(), tuple(args.source or SOURCES),
                     full=args.full, dry_run=args.dry_run)
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
+    except KeyboardInterrupt:
+        print("interrupted", file=sys.stderr)
+        return 130
 
 
 if __name__ == "__main__":
