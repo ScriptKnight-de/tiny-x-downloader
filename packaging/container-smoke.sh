@@ -32,7 +32,7 @@ check() { local what=$1; shift; if "$@" >/dev/null 2>&1; then ok "$what"; else b
 refuse() { local what=$1; shift; if "$@" >/dev/null 2>&1; then bad "$what"; else ok "$what"; fi; }
 run() { docker run --rm "${HARDEN[@]}" "${MOUNTS[@]}" "$@"; }
 
-docker volume create "$cfg" "$data" "$dl" >/dev/null
+for v in "$cfg" "$data" "$dl"; do docker volume create "$v" >/dev/null; done
 # An invented, empty Netscape cookie file, written as root (the compose setup mounts it read-only).
 docker run --rm --user 0 -v "$cfg":/config --entrypoint sh "$IMG" \
   -c 'printf "# Netscape HTTP Cookie File\n" > /config/cookies.txt && chmod 644 /config/cookies.txt'
@@ -66,7 +66,8 @@ echo "== daemon starts and stops cleanly on SIGTERM (docker stop)"
 docker run -d --name "$id" "${HARDEN[@]}" "${MOUNTS[@]}" -e X_RUN_ON_START=false "$IMG" daemon >/dev/null
 started=0
 for _ in $(seq 1 30); do
-  if docker logs "$id" 2>&1 | grep -q "next sync at"; then started=1; break; fi
+  logs=$(docker logs "$id" 2>&1 || true)   # not piped into grep -q: SIGPIPE + pipefail gives false negatives
+  if grep -q "next sync at" <<<"$logs"; then started=1; break; fi
   [ "$(docker inspect -f '{{.State.Running}}' "$id")" = true ] || break
   sleep 1
 done
@@ -77,7 +78,8 @@ took=$((SECONDS - t0))
 code=$(docker inspect -f '{{.State.ExitCode}}' "$id" 2>/dev/null || echo "?")
 [ "$code" = 0 ] && ok "exit code 0 after docker stop" || bad "exit code $code after docker stop (137 = killed, SIGTERM ignored)"
 [ "$took" -lt 10 ] && ok "stopped within ${took}s" || bad "stop took ${took}s"
-docker logs "$id" 2>&1 | grep -q "^stopping" && ok "logged 'stopping'" || bad "no 'stopping' line in the log"
+logs=$(docker logs "$id" 2>&1 || true)
+grep -q "^stopping" <<<"$logs" && ok "logged 'stopping'" || bad "no 'stopping' line in the log"
 
 echo
 if [ "$fail" = 0 ]; then echo "container smoke test: all checks passed"; else echo "container smoke test: FAILED"; fi
