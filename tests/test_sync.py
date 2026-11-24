@@ -25,6 +25,14 @@ def test_config_archive_outside_output_and_modes(settings):
     assert full["twitter"]["directory"] == ["likes"]
 
 
+def test_cookie_write_back_is_off_only_when_the_file_is_not_writable(settings, monkeypatch):
+    settings.cookies.write_text("# Netscape HTTP Cookie File\n")
+    assert "cookies-update" not in s.build_config("likes", settings, False)["extractor"]  # default kept
+    # monkeypatched because root (as in CI) can write to a read-only folder
+    monkeypatch.setattr(s.os, "access", lambda path, mode: False)
+    assert s.build_config("likes", settings, False)["extractor"]["cookies-update"] is False
+
+
 def test_backfill_state_switches_to_incremental(settings, monkeypatch):
     settings.archive.parent.mkdir(parents=True)
     monkeypatch.setattr(s, "GALLERY_DL", [__import__("sys").executable, "-c", "pass"])

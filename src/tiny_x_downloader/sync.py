@@ -48,20 +48,26 @@ def source_url(source: str, settings: Settings) -> str:
     return "https://x.com/i/history/likes"
 
 
+def _cookies_writable(settings: Settings) -> bool:
+    # gallery-dl saves refreshed cookies back next to the file it loaded (via a .tmp file in the same folder)
+    return os.access(settings.cookies, os.W_OK) and os.access(settings.cookies.parent, os.W_OK)
+
+
 def build_config(source: str, settings: Settings, incremental: bool) -> dict:
-    return {
-        "extractor": {
-            "cookies": str(settings.cookies),
-            "archive": str(settings.archive),
-            "twitter": {
-                "base-directory": str(settings.output_dir),
-                "directory": [source],
-                "filename": "{author[name]}_{tweet_id}_{num}.{extension}",
-                "videos": True,
-                "skip": f"abort:{ABORT_AFTER}" if incremental else True,
-            },
-        }
+    extractor: dict = {
+        "cookies": str(settings.cookies),
+        "archive": str(settings.archive),
+        "twitter": {
+            "base-directory": str(settings.output_dir),
+            "directory": [source],
+            "filename": "{author[name]}_{tweet_id}_{num}.{extension}",
+            "videos": True,
+            "skip": f"abort:{ABORT_AFTER}" if incremental else True,
+        },
     }
+    if not _cookies_writable(settings):  # e.g. the read-only /config mount in Docker: no error on every run
+        extractor["cookies-update"] = False
+    return {"extractor": extractor}
 
 
 def _load_state(settings: Settings) -> dict:
