@@ -100,7 +100,7 @@ cp .env.example ~/.config/tiny-x-downloader/env     # then edit the paths (X_COO
 tiny-x-downloader sync --dry-run                    # list what would be downloaded
 tiny-x-downloader sync                              # likes + bookmarks
 tiny-x-downloader sync --source bookmarks           # only one source
-tiny-x-downloader sync --full                       # rescan the whole timeline
+tiny-x-downloader sync --full                       # same as a normal run (kept for compatibility)
 tiny-x-downloader install-timer --time 04:00        # daily systemd user timer
 ```
 
@@ -155,8 +155,9 @@ Every file is recorded (post id + media index) in an SQLite archive that lives *
 download folder. Because the memory is independent of your files, you can move, rename or delete
 downloads and they will not come back. Just don't delete the archive.
 
-- **First run** per source (likes / bookmarks): full backfill of the whole timeline.
-- **Later runs:** scan newest first and stop after 30 consecutive already-known files.
+- **Every run** scans the whole timeline of each source (likes / bookmarks) and skips what the
+  archive already knows. A post that is both liked and bookmarked is therefore never a reason to stop early.
+  The first run downloads everything; later runs take longer as your lists grow, but only new files are fetched.
 
 ## Troubleshooting
 
@@ -165,7 +166,6 @@ downloads and they will not come back. Just don't delete the archive.
 | `AuthRequired` | your cookies expired; export a new `cookies.txt` |
 | `X_COOKIES is not set` | set `X_COOKIES` in `.env` or `~/.config/tiny-x-downloader/env` |
 | Files owned by root (Docker) | create `config`, `data`, `downloads` as your user and set `PUID`/`PGID` |
-| It stops early and misses old posts | run once with `sync --full` |
 
 ## Questions and bug reports
 

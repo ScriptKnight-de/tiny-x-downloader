@@ -32,7 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--source", choices=SOURCES, action="append",
                    help="limit to one source (repeatable; default: both)")
     s.add_argument("--full", action="store_true",
-                   help="scan the whole timeline instead of stopping at known posts")
+                   help="no longer needed: every run scans the whole timeline (kept for compatibility)")
     s.add_argument("--dry-run", action="store_true", help="list what would be downloaded")
 
     d = sub.add_parser("daemon", help="run forever, syncing once per day (for Docker)")

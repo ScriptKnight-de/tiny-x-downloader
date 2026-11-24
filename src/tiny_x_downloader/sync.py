@@ -17,9 +17,6 @@ from .config import Settings
 from .notify import Notifier, cookie_warning, looks_like_auth_error
 
 SOURCES = ("likes", "bookmarks")
-# After the first complete run, stop a source after this many consecutive
-# already-archived files (timelines are newest-first).
-ABORT_AFTER = 30
 CANCELLED = 130
 
 
@@ -62,7 +59,9 @@ def build_config(source: str, settings: Settings, incremental: bool) -> dict:
             "directory": [source],
             "filename": "{author[name]}_{tweet_id}_{num}.{extension}",
             "videos": True,
-            "skip": f"abort:{ABORT_AFTER}" if incremental else True,
+            # always walk the whole timeline: a post can already be archived via the other source
+            # (liked and bookmarked), so "stop at the first known files" would miss new posts
+            "skip": True,
         },
     }
     if not _cookies_writable(settings):  # e.g. the read-only /config mount in Docker: no error on every run

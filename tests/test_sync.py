@@ -21,7 +21,7 @@ def test_config_archive_outside_output_and_modes(settings):
     inc = s.build_config("likes", settings, incremental=True)["extractor"]
     assert full["archive"] == str(settings.archive)
     assert full["twitter"]["skip"] is True
-    assert inc["twitter"]["skip"] == f"abort:{s.ABORT_AFTER}"
+    assert inc["twitter"]["skip"] is True  # never "abort:N": a known post must not end the scan
     assert full["twitter"]["directory"] == ["likes"]
 
 
